@@ -1,0 +1,11 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+
+ <g>
+  <title>Layer 1</title>
+  <circle stroke-width="0" stroke="null" id="svg_4" fill="#ffd21a" r="95" cy="255.99999" cx="256"/>
+  <circle stroke-width="0" opacity="undefined" stroke="null" id="svg_7" fill="#087cff" r="95" cy="416.99999" cx="416.99999"/>
+  <circle stroke-width="0" opacity="undefined" stroke="null" id="svg_8" fill="#ff9f00" r="95" cy="417.64514" cx="95"/>
+  <circle stroke-width="0" stroke="null" id="svg_9" fill="#20c95a" r="95" cy="95" cx="417"/>
+  <circle stroke-width="0" opacity="undefined" stroke="null" id="svg_10" fill="#ff2b2b" r="95" cy="95" cx="95"/>
+ </g>
+</svg>
