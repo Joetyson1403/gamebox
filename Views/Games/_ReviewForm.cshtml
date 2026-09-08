@@ -1,0 +1,41 @@
+@model gamebox.ViewModels.ReviewCreateViewModel
+
+@{
+    var members = ViewBag.Members as List<gamebox.Models.Member> ?? new List<gamebox.Models.Member>();
+}
+
+<form asp-action="AddReview" asp-controller="Games" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="GameId" value="@Model.GameId" />
+
+    <div class="mb-3">
+        <label for="MemberId" class="form-label">Membre</label>
+        <select class="form-select" name="MemberId" id="MemberId" required>
+            <option value="">-- Choisir un membre --</option>
+            @foreach (var m in members)
+            {
+                <option value="@m.Id">@m.Username</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Note</label>
+        <div>
+            @for (int i = 5; i >= 1; i--)
+            {
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Rating" id="star@i" value="@i" required />
+                    <label class="form-check-label" for="star@i">@("★".PadLeft(i, '★').Substring(0,1)) @i</label>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="Comment" class="form-label">Commentaire</label>
+        <textarea class="form-control" name="Comment" id="Comment" rows="3"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Envoyer</button>
+</form>

@@ -1,0 +1,42 @@
+@model gamebox.Models.Game
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <img src="@Model.CoverUrl" alt="@Model.Title" class="img-fluid" />
+        </div>
+        <div class="col-md-8">
+            <h2>@Model.Title</h2>
+            <p class="text-muted">@Model.Studio — @Model.ReleaseYear</p>
+            <p>@Model.Description</p>
+
+            <h4>Note moyenne :
+                @if (Model.Reviews != null && Model.Reviews.Count > 0)
+                {
+                    <span class="badge bg-primary">@Model.AverageRating.ToString("0.0")</span>
+                }
+                else
+                {
+                    <span class="text-muted">Pas encore noté</span>
+                }
+            </h4>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Ajouter un avis</h5>
+            @Html.Partial("_ReviewForm", (gamebox.ViewModels.ReviewCreateViewModel)ViewBag.ReviewModel)
+        </div>
+        <div class="col-md-6">
+            <h5>Avis</h5>
+            @Html.Partial("_ReviewList", (IEnumerable<gamebox.Models.Review>)Model.Reviews)
+        </div>
+    </div>
+</div>
