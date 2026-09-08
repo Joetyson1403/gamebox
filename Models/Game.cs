@@ -16,4 +16,5 @@ public class Game
     // Lien inverse
     public List<Member> PlayedBy { get; set; } = new(); 
     public List<CustomList> CustomLists { get; set; } = new();
+    public List<UserGameStatus> UserStatuses { get; set; } = new();
 }

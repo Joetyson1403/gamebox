@@ -11,6 +11,13 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
+// Initialiser la base de données et les tables
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    DbInitializer.Initialize(context);
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

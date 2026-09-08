@@ -1,8 +1,35 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Accueil - Gamebox";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="py-5 text-center bg-light rounded-4 border mb-5 p-4 p-md-5">
+    <div class="col-lg-8 mx-auto">
+        <h1 class="display-5 fw-bold text-dark mb-3">🎮 Bienvenue sur Gamebox</h1>
+        <p class="lead text-secondary mb-4">
+            Gamebox est votre plateforme de suivi et de critique de jeux vidéo. Classez vos jeux, notez vos titres préférés et tenez votre journal de bord à jour !
+        </p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a asp-controller="Games" asp-action="Index" class="btn btn-primary btn-lg px-4 gap-3 rounded-pill">
+                Explorer les jeux &rarr;
+            </a>
+            <a asp-controller="Games" asp-action="Details" asp-route-id="1" class="btn btn-outline-secondary btn-lg px-4 rounded-pill">
+                Fiche de jeu (Baldur's Gate 3)
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-primary border-opacity-25 bg-primary bg-opacity-10 rounded-3 p-4">
+    <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="badge bg-primary">Ticket GBX-8</span>
+        <h5 class="fw-bold mb-0 text-dark">Fonctionnalité : Définir le statut d'un jeu</h5>
+    </div>
+    <p class="text-secondary mb-2">
+        En tant qu'utilisateur, vous pouvez désormais classer vos jeux en <strong>À jouer</strong> (ToPlay), <strong>En cours</strong> (Playing), <strong>Terminé</strong> (Completed) ou <strong>Abandonné</strong> (Dropped).
+    </p>
+    <div>
+        <a asp-controller="Games" asp-action="Details" asp-route-id="1" class="fw-semibold text-decoration-none">
+            Tester immédiatement sur la fiche de Baldur's Gate 3 &rarr;
+        </a>
+    </div>
 </div>

@@ -1,0 +1,211 @@
+@model gamebox.Models.GameDetailsViewModel
+@{
+    ViewData["Title"] = Model.Game.Title + " - Gamebox";
+
+    // Détermination de l'état initial du bouton pour GBX-32
+    var currentStatus = Model.CurrentStatus;
+    var statusLabel = currentStatus.HasValue ? currentStatus.Value.GetDisplayName() : "Définir un statut";
+    var statusIcon = currentStatus.HasValue ? currentStatus.Value.GetIcon() : "+";
+    var buttonClass = currentStatus switch
+    {
+        gamebox.Models.GameStatus.ToPlay => "btn-info text-white shadow-sm",
+        gamebox.Models.GameStatus.Playing => "btn-warning text-dark fw-bold shadow-sm",
+        gamebox.Models.GameStatus.Completed => "btn-success text-white shadow-sm",
+        gamebox.Models.GameStatus.Dropped => "btn-danger text-white shadow-sm",
+        _ => "btn-outline-secondary"
+    };
+}
+
+<div class="container py-4">
+    <!-- Fil d'ariane -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Games" asp-action="Index">Jeux</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Game.Title</li>
+        </ol>
+    </nav>
+
+    <!-- Zone de notification après mise à jour du statut -->
+    <div id="statusToast" class="alert alert-success alert-dismissible fade d-none mb-4" role="alert">
+        <span id="statusToastMessage">Statut mis à jour avec succès !</span>
+        <button type="button" class="btn-close" onclick="document.getElementById('statusToast').classList.add('d-none')"></button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-body p-4 p-md-5">
+            <div class="row g-4 align-items-center">
+                <!-- Jaquette du jeu -->
+                <div class="col-md-4 col-lg-3 text-center">
+                    @if (!string.IsNullOrEmpty(Model.Game.CoverUrl))
+                    {
+                        <img src="@Model.Game.CoverUrl" alt="@Model.Game.Title" class="img-fluid rounded-3 shadow" style="max-height: 380px; width: 100%; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <div class="bg-light rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="height: 320px;">
+                            <span class="text-muted fs-1">🎮</span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Informations du jeu & Menu déroulant de Statut (GBX-30 & GBX-32) -->
+                <div class="col-md-8 col-lg-9">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-2">
+                        <h1 class="h2 fw-bold mb-0 text-dark">@Model.Game.Title</h1>
+                        <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill">
+                            ★ @(Model.Game.AverageRating > 0 ? Model.Game.AverageRating.ToString("0.0") : "N/A") / 5
+                        </span>
+                    </div>
+
+                    <p class="text-muted mb-3">
+                        <span><strong>Studio :</strong> @Model.Game.Studio</span>
+                        <span class="mx-2">&bull;</span>
+                        <span><strong>Année de sortie :</strong> @(Model.Game.ReleaseYear > 0 ? Model.Game.ReleaseYear.ToString() : "Non renseignée")</span>
+                    </p>
+
+                    <p class="lead text-secondary mb-4">
+                        @Model.Game.Description
+                    </p>
+
+                    <hr class="my-4" />
+
+                    <!-- COMPOSANT TICKET GBX-8 : MENU DÉROULANT DE STATUT -->
+                    <div class="p-3 bg-light rounded-3 border d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div>
+                            <span class="fw-semibold d-block text-dark">Statut de votre progression :</span>
+                            <small class="text-muted">Sélectionnez le statut de ce jeu pour votre compte (@(Model.ActiveMember?.Username ?? "Alex"))</small>
+                        </div>
+
+                        <!-- Menu Déroulant (Dropdown) - GBX-30 & GBX-32 -->
+                        <div class="dropdown">
+                            <button class="btn @buttonClass dropdown-toggle px-4 py-2 rounded-pill d-inline-flex align-items-center gap-2" 
+                                    type="button" 
+                                    id="statusDropdownBtn" 
+                                    data-bs-toggle="dropdown" 
+                                    aria-expanded="false">
+                                <span id="statusBtnIcon">@statusIcon</span>
+                                <span id="statusBtnText">@statusLabel</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-2" aria-labelledby="statusDropdownBtn">
+                                <li>
+                                    <button type="button" class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" onclick="submitGameStatus(@Model.Game.Id, 'ToPlay')">
+                                        <span>⏳</span>
+                                        <span><strong>À jouer</strong> (ToPlay)</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button type="button" class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" onclick="submitGameStatus(@Model.Game.Id, 'Playing')">
+                                        <span>🎮</span>
+                                        <span><strong>En cours</strong> (Playing)</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button type="button" class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" onclick="submitGameStatus(@Model.Game.Id, 'Completed')">
+                                        <span>✅</span>
+                                        <span><strong>Terminé</strong> (Completed)</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button type="button" class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" onclick="submitGameStatus(@Model.Game.Id, 'Dropped')">
+                                        <span>❌</span>
+                                        <span><strong>Abandonné</strong> (Dropped)</span>
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button type="button" class="dropdown-item rounded-2 py-2 text-danger d-flex align-items-center gap-2" onclick="submitGameStatus(@Model.Game.Id, null)">
+                                        <span>🗑️</span>
+                                        <span>Retirer le statut</span>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Fonction interactive AJAX pour le ticket GBX-31 & GBX-32
+        function submitGameStatus(gameId, statusValue) {
+            const btn = document.getElementById('statusDropdownBtn');
+            const iconSpan = document.getElementById('statusBtnIcon');
+            const textSpan = document.getElementById('statusBtnText');
+            const toast = document.getElementById('statusToast');
+            const toastMessage = document.getElementById('statusToastMessage');
+
+            // Indicateur de chargement
+            const originalIcon = iconSpan.textContent;
+            iconSpan.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+
+            const formData = new URLSearchParams();
+            formData.append('gameId', gameId);
+            if (statusValue !== null && statusValue !== undefined) {
+                formData.append('status', statusValue);
+            }
+
+            fetch('/Games/SetStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData.toString()
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Erreur réseau lors de la mise à jour');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // GBX-32 : Mettre à jour l'état visuel du bouton selon le statut actuel
+                    // Nettoyer les anciennes classes de couleur
+                    btn.classList.remove('btn-info', 'btn-warning', 'btn-success', 'btn-danger', 'btn-outline-secondary', 'text-white', 'text-dark', 'fw-bold', 'shadow-sm');
+
+                    if (data.hasStatus) {
+                        switch (data.status) {
+                            case 'ToPlay':
+                                btn.classList.add('btn-info', 'text-white', 'shadow-sm');
+                                break;
+                            case 'Playing':
+                                btn.classList.add('btn-warning', 'text-dark', 'fw-bold', 'shadow-sm');
+                                break;
+                            case 'Completed':
+                                btn.classList.add('btn-success', 'text-white', 'shadow-sm');
+                                break;
+                            case 'Dropped':
+                                btn.classList.add('btn-danger', 'text-white', 'shadow-sm');
+                                break;
+                        }
+                    } else {
+                        btn.classList.add('btn-outline-secondary');
+                    }
+
+                    // Mettre à jour les textes et icônes
+                    iconSpan.textContent = data.icon;
+                    textSpan.textContent = data.displayName;
+
+                    // Afficher la notification de confirmation
+                    toastMessage.innerHTML = `<strong>Succès !</strong> Statut mis à jour : <strong>${data.displayName}</strong>`;
+                    toast.classList.remove('d-none');
+                    toast.classList.add('show');
+
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => toast.classList.add('d-none'), 300);
+                    }, 3500);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                iconSpan.textContent = originalIcon;
+                alert("Une erreur est survenue lors de l'enregistrement du statut.");
+            });
+        }
+    </script>
+}
