@@ -1,0 +1,169 @@
+@model List<gamebox.Models.GameDto>
+
+@{
+    ViewData["Title"] = "Recherche";
+}
+
+<style>
+    .search-container {
+        background-color: #141a2c;
+        border-radius: 12px;
+        padding: 6px 8px 6px 14px;
+        display: flex;
+        align-items: center;
+        border: 1px solid #232b45;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-container:focus-within {
+        border-color: #ff6b35;
+        box-shadow: 0 0 0 1px rgba(255, 107, 53, 0.25);
+    }
+    
+    .search-input {
+        background: transparent !important;
+        border: none !important;
+        color: #ffffff !important;
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 0.95rem;
+        box-shadow: none !important;
+        outline: none !important;
+        caret-color: #ff6b35;
+    }
+
+    .search-input::placeholder {
+        color: #8e9aaf !important;
+        opacity: 1 !important;
+        font-size: 0.92rem;
+        font-weight: 400;
+    }
+    
+    .search-input:focus {
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #ffffff !important;
+    }
+    
+    .search-icon {
+        display: flex;
+        align-items: center;
+        color: #ff6b35;
+        flex-shrink: 0;
+    }
+
+    .filter-btn {
+        background-color: #1d243a;
+        border: 1px solid #28314e;
+        border-radius: 8px;
+        color: #ff6b35;
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .filter-btn:hover {
+        background-color: #263050;
+        border-color: #ff6b35;
+    }
+
+    .game-card {
+        background-color: #161b2e;
+        border-radius: 8px;
+        border: 1px solid #232a42;
+        overflow: hidden;
+        transition: transform 0.2s;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .game-card:hover {
+        transform: scale(1.02);
+    }
+    
+    .game-card-img {
+        width: 100%;
+        height: 220px; /* Make it a vertical rectangle */
+        object-fit: cover;
+        border-radius: 8px; /* Rounded corners for the image itself */
+    }
+    
+    .game-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-align: center;
+        padding: 12px 5px 5px 5px;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .page-title {
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-top: 25px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="container-fluid mt-3 px-3">
+    <form asp-controller="Games" asp-action="Search" method="get">
+        <div class="search-container">
+            <div class="search-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </div>
+            <input type="text" name="query" class="form-control search-input" placeholder="Search games, publishers, tags..." value="@ViewBag.Query" />
+            <button type="button" class="filter-btn" title="Filtres" aria-label="Filtres">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-sliders" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3h9.05zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8h2.05zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1h9.05z"/>
+                </svg>
+            </button>
+            <button type="submit" style="display: none;"></button>
+        </div>
+    </form>
+
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-warning mt-4" role="alert">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+
+    <h2 class="page-title">@(string.IsNullOrEmpty(ViewBag.Query) ? "Trending now" : "Results")</h2>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
+            @foreach (var game in Model)
+            {
+                <div class="col">
+                    <a href="#" class="text-decoration-none text-white">
+                        <div class="game-card h-100">
+                            @if (!string.IsNullOrEmpty(game.BackgroundImage))
+                            {
+                                <img src="@game.BackgroundImage" class="game-card-img" alt="@game.Name">
+                            }
+                            else
+                            {
+                                <div class="game-card-img d-flex align-items-center justify-content-center bg-secondary">
+                                    <span>No image</span>
+                                </div>
+                            }
+                            <h3 class="game-title">@game.Name</h3>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+</div>
