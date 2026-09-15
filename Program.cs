@@ -9,6 +9,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddHttpClient<gamebox.Services.IGameApiService, gamebox.Services.GameApiService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10); // Handle timeout as required by GBX-19
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
