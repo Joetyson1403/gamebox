@@ -70,7 +70,7 @@ body {
 }
 
 .game-details-page {
-  max-width: 480px;
+  max-width: 1180px;
   margin: 0 auto;
   padding: 18px 20px 90px;
 }
@@ -133,11 +133,7 @@ body {
   color: #9ba1b1;
   line-height: 1.55;
   margin-top: 32px;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
-  line-clamp: 5;
-  overflow: hidden;
+  max-width: 760px;
 }
 
 .community-rating {
@@ -254,4 +250,38 @@ body {
 
 .studio-info strong {
   color: white;
+}
+
+@media (min-width: 900px) {
+  .game-details-page {
+    padding-top: 36px;
+  }
+
+  .game-details-header {
+    max-width: 880px;
+    margin: 0 auto 32px;
+  }
+
+  .game-details-content {
+    display: grid;
+    grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+    gap: 48px;
+    max-width: 880px;
+    margin: 0 auto;
+  }
+
+  .details-cover {
+    width: 100%;
+    aspect-ratio: 1.25;
+    margin-top: 0;
+  }
+
+  .details-information {
+    min-width: 0;
+  }
+
+  .details-information h2 {
+    margin-top: 0;
+    font-size: 2rem;
+  }
 }

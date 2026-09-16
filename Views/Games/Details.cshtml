@@ -1,3 +1,4 @@
+@using System.Text.RegularExpressions
 @model gamebox.Models.RawgGameDetailsDto
 
 @{
@@ -5,6 +6,12 @@
     var communityRating = ViewBag.CommunityRating as double?;
     var reviewCount = (int)(ViewBag.CommunityReviewCount ?? 0);
     var developer = Model.Developers.FirstOrDefault()?.Name ?? "Développeur inconnu";
+    var description = string.IsNullOrWhiteSpace(Model.Description)
+        ? "Aucun synopsis disponible."
+        : Model.Description.Trim();
+    var summary = string.Join(" ", Regex.Split(description, @"(?<=[.!?])\s+")
+        .Where(sentence => !string.IsNullOrWhiteSpace(sentence))
+        .Take(2));
 }
 
 <div class="game-details-page">
@@ -20,45 +27,45 @@
             <img src="@Model.BackgroundImage" class="details-cover" alt="@Model.Name" />
         }
 
-        <h2>@Model.Name</h2>
-        <p class="details-meta"><strong>@developer</strong><span>•</span>@Model.Released</p>
+        <div class="details-information">
+            <h2>@Model.Name</h2>
+            <p class="details-meta"><strong>@developer</strong><span>•</span>@Model.Released</p>
 
-        <p class="details-description">
-            @(string.IsNullOrWhiteSpace(Model.Description) ? "Aucun synopsis disponible." : Model.Description)
-        </p>
+            <p class="details-description">@summary</p>
 
-        @if (Model.Genres.Any())
-        {
-            <div class="genre-section">
-                <h3>Genre Tags</h3>
-                <div class="genre-tags">
-                    @foreach (var genre in Model.Genres)
+            @if (Model.Genres.Any())
+            {
+                <div class="genre-section">
+                    <h3>Genre Tags</h3>
+                    <div class="genre-tags">
+                        @foreach (var genre in Model.Genres)
+                        {
+                            <span>@genre.Name</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            <section class="community-rating" aria-label="Note moyenne de la communauté">
+                <div class="rating-score">@(communityRating?.ToString("0.0") ?? "—")</div>
+                <div class="rating-bars" aria-hidden="true">
+                    @for (var rating = 5; rating >= 1; rating--)
                     {
-                        <span>@genre.Name</span>
+                        var width = communityRating.HasValue ? Math.Min(100, communityRating.Value / 5 * rating * 20) : 0;
+                        <div><span>@rating</span><i style="width: @width%"></i></div>
                     }
                 </div>
-            </div>
-        }
+                <div class="rating-stars">★★★★★</div>
+                <small>@reviewCount avis de la communauté</small>
+            </section>
 
-        <section class="community-rating" aria-label="Note moyenne de la communauté">
-            <div class="rating-score">@(communityRating?.ToString("0.0") ?? "—")</div>
-            <div class="rating-bars" aria-hidden="true">
-                @for (var rating = 5; rating >= 1; rating--)
-                {
-                    var width = communityRating.HasValue ? Math.Min(100, communityRating.Value / 5 * rating * 20) : 0;
-                    <div><span>@rating</span><i style="width: @width%"></i></div>
-                }
+            <div class="details-actions">
+                <button type="button" class="details-secondary-button">Rate or Review</button>
+                <button type="button" class="details-primary-button">Add to Journal</button>
             </div>
-            <div class="rating-stars">★★★★★</div>
-            <small>@reviewCount avis de la communauté</small>
-        </section>
 
-        <div class="details-actions">
-            <button type="button" class="details-secondary-button">Rate or Review</button>
-            <button type="button" class="details-primary-button">Add to Journal</button>
+            <h3>Studio Info</h3>
+            <div class="studio-info"><span>Developer</span><strong>@developer</strong></div>
         </div>
-
-        <h3>Studio Info</h3>
-        <div class="studio-info"><span>Developer</span><strong>@developer</strong></div>
     </main>
 </div>
