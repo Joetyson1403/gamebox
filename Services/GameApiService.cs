@@ -6,6 +6,7 @@ namespace gamebox.Services;
 public interface IGameApiService
 {
     Task<List<GameDto>?> SearchGamesAsync(string query);
+    Task<RawgGameDetailsDto?> GetGameDetailsAsync(int id);
 }
 
 public class GameApiService : IGameApiService
@@ -73,6 +74,29 @@ public class GameApiService : IGameApiService
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while fetching data from API.");
+            return null;
+        }
+    }
+
+    public async Task<RawgGameDetailsDto?> GetGameDetailsAsync(int id)
+    {
+        try
+        {
+            var apiKey = _configuration["RawgApi:ApiKey"];
+            var response = await _httpClient.GetAsync($"games/{id}?key={apiKey}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("RAWG a répondu avec le code {StatusCode} pour le jeu {GameId}.", response.StatusCode, id);
+                return null;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<RawgGameDetailsDto>(content);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur pendant la récupération du jeu {GameId}.", id);
             return null;
         }
     }
