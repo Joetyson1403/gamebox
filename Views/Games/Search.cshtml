@@ -147,7 +147,10 @@
             @foreach (var game in Model)
             {
                 <div class="col">
-                    <a href="#" class="text-decoration-none text-white">
+                          <a asp-controller="Games"
+                              asp-action="Details"
+                              asp-route-id="@game.Id"
+                              class="text-decoration-none text-white">
                         <div class="game-card h-100">
                             @if (!string.IsNullOrEmpty(game.BackgroundImage))
                             {
