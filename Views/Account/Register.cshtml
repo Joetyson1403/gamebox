@@ -1,0 +1,41 @@
+@model gamebox.ViewModels.RegisterViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Create account";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create account - Gamebox</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="auth-page">
+    <main class="auth-shell auth-shell-register">
+        <section class="auth-panel" aria-labelledby="register-title">
+            <img class="gamebox-logo" src="~/images/gamebox_logo.png" alt="Gamebox logo" />
+            <h1 id="register-title">Create account</h1>
+
+            <form asp-action="Register" method="post" class="auth-form">
+                <div asp-validation-summary="ModelOnly" class="auth-error" role="alert"></div>
+                <label asp-for="Username"></label>
+                <input asp-for="Username" autocomplete="username" placeholder="Username" autofocus />
+                <span asp-validation-for="Username" class="field-error"></span>
+                <label asp-for="Email"></label>
+                <input asp-for="Email" autocomplete="email" placeholder="Email" />
+                <span asp-validation-for="Email" class="field-error"></span>
+                <label asp-for="Password"></label>
+                <input asp-for="Password" autocomplete="new-password" placeholder="Password" />
+                <span asp-validation-for="Password" class="field-error"></span>
+                <label asp-for="ConfirmPassword"></label>
+                <input asp-for="ConfirmPassword" autocomplete="new-password" placeholder="Confirm password" />
+                <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+                <button type="submit" class="auth-submit">Create account</button>
+            </form>
+        </section>
+        <p class="auth-switch">Already have an account? <a asp-action="Login">Log in</a></p>
+    </main>
+    <partial name="_ValidationScriptsPartial" />
+</body>
+</html>

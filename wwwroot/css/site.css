@@ -37,6 +37,33 @@ body {
     margin-bottom: 70px; /* Space for bottom navbar */
 }
 
+.auth-nav-link {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  z-index: 1020;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #9ba1b1;
+  font-size: .8rem;
+}
+
+.auth-nav-link a,
+.auth-nav-link button {
+  color: #ff6b35;
+  background: transparent;
+  border: 0;
+  font-size: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.auth-nav-link a:hover,
+.auth-nav-link button:hover {
+  color: #ff936f;
+}
+
 /* Bottom Navigation Bar */
 .bottom-navbar {
     background-color: #161b2e;
@@ -250,6 +277,161 @@ body {
 
 .studio-info strong {
   color: white;
+}
+
+/* Account screens */
+.auth-page {
+  min-height: 100vh;
+  margin: 0;
+  color: #f8f8fb;
+  background:
+    linear-gradient(rgba(5, 8, 14, .82), rgba(5, 8, 14, .96)),
+    radial-gradient(circle at 50% 15%, #27384a 0, #101722 34%, #05080e 76%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 16px;
+}
+
+.auth-shell {
+  width: min(100%, 390px);
+  text-align: center;
+}
+
+.auth-panel {
+  padding: 28px 28px 24px;
+  background: rgba(17, 21, 34, .94);
+  border: 1px solid #2a3043;
+  border-radius: 17px;
+  box-shadow: 0 20px 55px rgba(0, 0, 0, .42);
+}
+
+.auth-shell-register {
+  max-width: 430px;
+}
+
+.gamebox-logo {
+  display: block;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 8px;
+  object-fit: contain;
+}
+
+.auth-panel h1 {
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  font-family: 'Geist', sans-serif;
+}
+
+.auth-subtitle {
+  margin: 3px 0 23px;
+  color: #858b9e;
+  font-size: .78rem;
+}
+
+.auth-form {
+  text-align: left;
+  font-family: 'Geist', sans-serif;
+}
+
+.auth-form label:not(.auth-checkbox) {
+  display: block;
+  margin: 12px 0 6px;
+  color: #9da3b6;
+  font-size: .72rem;
+}
+
+.auth-form input:not([type="checkbox"]) {
+  width: 100%;
+  height: 42px;
+  padding: 0 13px;
+  color: #f8f8fb;
+  background: #1d2131;
+  border: 1px solid #2d3449;
+  border-radius: 8px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.auth-form input:not([type="checkbox"]):focus {
+  border-color: #ff5b20;
+  box-shadow: 0 0 0 3px rgba(255, 91, 32, .16);
+}
+
+.auth-form input::placeholder {
+  color: #737a8e;
+}
+
+.auth-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 13px 0 17px;
+  color: #9298aa;
+  font-size: .72rem;
+}
+
+.auth-checkbox input {
+  accent-color: #ff5b20;
+}
+
+.auth-submit {
+  width: 100%;
+  min-height: 42px;
+  color: white;
+  background: #ff5b20;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color .2s ease, transform .2s ease;
+  margin-top: 20px
+}
+
+.auth-submit:hover {
+  background: #ff713d;
+  transform: translateY(-1px);
+
+}
+
+.auth-switch {
+  margin: 17px 0 0;
+  color: #73798a;
+  font-size: .72rem;
+  font-family: 'Geist', sans-serif;
+}
+
+.auth-switch a {
+  color: #ff6b35;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-error,
+.field-error {
+  display: block;
+  margin-top: 5px;
+  color: #ff807d;
+  font-size: .72rem;
+}
+
+.auth-error:empty,
+.field-error:empty {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    align-items: flex-start;
+    padding: 74px 16px 30px;
+  }
+
+  .auth-panel {
+    padding: 25px 14px 20px;
+  }
 }
 
 @media (min-width: 900px) {
