@@ -16,6 +16,21 @@
         </main>
     </div>
 
+    <div class="auth-nav-link">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <span>Hello, @User.Identity.Name</span>
+            <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                <button type="submit">Logout</button>
+            </form>
+        }
+        else
+        {
+            <a asp-controller="Auth" asp-action="Login">Login</a>
+            <a asp-controller="Auth" asp-action="Register">Create account</a>
+        }
+    </div>
+
     <!-- Bottom Navigation Bar -->
     <nav class="bottom-navbar">
         <a asp-area="" asp-controller="Home" asp-action="Index" class="bottom-nav-item">
