@@ -12,6 +12,12 @@
     var summary = string.Join(" ", Regex.Split(description, @"(?<=[.!?])\s+")
         .Where(sentence => !string.IsNullOrWhiteSpace(sentence))
         .Take(2));
+
+    var currentStatus = ViewBag.CurrentStatus as gamebox.Models.GameStatus?;
+    var statusLabel = currentStatus.HasValue ? currentStatus.Value.GetDisplayName() : "Définir un statut";
+    var statusIcon = currentStatus.HasValue ? currentStatus.Value.GetIcon() : "+";
+    var activeMember = ViewBag.ActiveMember as gamebox.Models.Member;
+    var statusBadgeClass = currentStatus.HasValue ? currentStatus.Value.GetBadgeClass() : "status-badge-none";
 }
 
 <div class="game-details-page">
@@ -59,9 +65,60 @@
                 <small>@reviewCount avis de la communauté</small>
             </section>
 
+            <!-- Actions avec le statut du jeu (GBX-8 / GBX-30 / GBX-32) -->
             <div class="details-actions">
                 <button type="button" class="details-secondary-button">Rate or Review</button>
-                <button type="button" class="details-primary-button">Add to Journal</button>
+                
+                <!-- Menu déroulant pour le statut du jeu -->
+                <div class="dropdown status-dropdown-container">
+                    <button class="details-status-button @statusBadgeClass dropdown-toggle" 
+                            type="button" 
+                            id="statusDropdownBtn" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false">
+                        <span id="statusBtnIcon">@statusIcon</span>
+                        <span id="statusBtnText">@statusLabel</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-secondary border-opacity-25 rounded-3 p-2 bg-dark" aria-labelledby="statusDropdownBtn">
+                        <li>
+                            <button type="button" class="dropdown-item text-light rounded-2 py-2 d-flex align-items-center gap-2" onclick="submitGameStatus(@Model.Id, 'ToPlay')">
+                                <span>⏳</span>
+                                <span><strong>À jouer</strong> (ToPlay)</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item text-light rounded-2 py-2 d-flex align-items-center gap-2" onclick="submitGameStatus(@Model.Id, 'Playing')">
+                                <span>🎮</span>
+                                <span><strong>En cours</strong> (Playing)</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item text-light rounded-2 py-2 d-flex align-items-center gap-2" onclick="submitGameStatus(@Model.Id, 'Completed')">
+                                <span>✅</span>
+                                <span><strong>Terminé</strong> (Completed)</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item text-light rounded-2 py-2 d-flex align-items-center gap-2" onclick="submitGameStatus(@Model.Id, 'Dropped')">
+                                <span>❌</span>
+                                <span><strong>Abandonné</strong> (Dropped)</span>
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider border-secondary"></li>
+                        <li>
+                            <button type="button" class="dropdown-item text-danger rounded-2 py-2 d-flex align-items-center gap-2" onclick="submitGameStatus(@Model.Id, null)">
+                                <span>🗑️</span>
+                                <span>Retirer le statut</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Toast de notification -->
+            <div id="statusToast" class="status-toast d-none" role="alert" aria-live="assertive" aria-atomic="true">
+                <span id="statusToastIcon">✅</span>
+                <span id="statusToastMessage">Statut mis à jour</span>
             </div>
 
             <h3>Studio Info</h3>
@@ -69,3 +126,64 @@
         </div>
     </main>
 </div>
+
+@section Scripts {
+    <script>
+        function submitGameStatus(gameId, statusValue) {
+            const btn = document.getElementById('statusDropdownBtn');
+            const iconSpan = document.getElementById('statusBtnIcon');
+            const textSpan = document.getElementById('statusBtnText');
+            const toast = document.getElementById('statusToast');
+            const toastMessage = document.getElementById('statusToastMessage');
+            const toastIcon = document.getElementById('statusToastIcon');
+
+            const originalIcon = iconSpan.textContent;
+            iconSpan.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+
+            const formData = new URLSearchParams();
+            formData.append('gameId', gameId);
+            if (statusValue !== null && statusValue !== undefined) {
+                formData.append('status', statusValue);
+            }
+            formData.append('gameTitle', '@Html.Raw(Model.Name.Replace("'", "\\'"))');
+            formData.append('coverUrl', '@Html.Raw(Model.BackgroundImage?.Replace("'", "\\'") ?? "")');
+
+            fetch('/Games/SetStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData.toString()
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Erreur réseau');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    btn.classList.remove('status-badge-toplay', 'status-badge-playing', 'status-badge-completed', 'status-badge-dropped', 'status-badge-none');
+                    btn.classList.add(data.badgeClass);
+
+                    iconSpan.textContent = data.icon;
+                    textSpan.textContent = data.displayName;
+
+                    toastIcon.textContent = data.icon;
+                    toastMessage.textContent = 'Statut mis à jour : ' + data.displayName;
+                    toast.classList.remove('d-none');
+                    toast.classList.add('show');
+
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => toast.classList.add('d-none'), 300);
+                    }, 3000);
+                }
+            })
+            .catch(err => {
+                console.error('Erreur:', err);
+                iconSpan.textContent = originalIcon;
+                alert("Une erreur est survenue lors de l'enregistrement du statut.");
+            });
+        }
+    </script>
+}
