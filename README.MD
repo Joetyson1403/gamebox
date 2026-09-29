@@ -11,6 +11,46 @@ Gamebox est une plateforme web de suivi et de critique de jeux-vidéos s’inspi
 
 ---
 
+## Architecture des Données : Base SQLite & API Externe
+
+Le projet repose sur une **architecture hybride** combinant une API REST externe et une base de données relationnelle locale :
+
+```text
+[ API RAWG ] (Catalogue mondial de +500'000 jeux)
+     │
+     ▼ (Recherche & Consultation)
+[ Contrôleurs ASP.NET Core ] ── (Synchronisation & Logique métier)
+     │
+     ▼ (Entity Framework Core)
+[ Base SQLite : gamebox.db ] (Données propres à la plateforme)
+```
+
+### 1. Pourquoi combiner API et Base de Données ?
+- **L'API externe (RAWG) :** Fournit un catalogue mondial dynamique sans avoir à saisir manuellement des milliers de jeux, jaquettes, studios et descriptions.
+- **La Base locale (`gamebox.db`) :** Permet la persistance des données propres aux utilisateurs de Gamebox. Comme il est impossible d'écrire sur les serveurs distants de RAWG, toutes les actions des utilisateurs (comptes, critiques, notes, statuts, listes) sont sauvegardées dans notre base SQLite.
+- **Synchronisation automatique :** Dès qu'un utilisateur note un jeu ou modifie son statut, le contrôleur vérifie si le jeu existe déjà dans la table locale `Games`. Si ce n'est pas le cas, il y est automatiquement importé et enregistré.
+
+### 2. Rôle des Tables SQLite
+L'application s'appuie sur **7 tables métier** et des tables techniques générées par Entity Framework Core :
+
+| Table | Description | Clés / Relations |
+| :--- | :--- | :--- |
+| **`Games`** | Catalogue local des jeux importés depuis RAWG (Titre, Studio, Année, Jaquette, Note moyenne calculée). | Clé primaire `Id`. |
+| **`Users`** | Comptes utilisateurs. Applique le pattern **TPH (Table Per Hierarchy)** : regroupe `Member` et `Administrator` avec le discriminateur `UserType`. | Clé primaire `Id`. |
+| **`Reviews`** | Avis textuels et notes (1 à 5 étoiles) rédigés par les membres. | Clé étrangère vers `Users(Id)` et `Games(Id)`. |
+| **`MemberGameStatuses`** | Suivi du backlog d'un joueur (*Wishlist*, *In Progress*, *Completed*, etc.). | Clé composite `(MemberId, GameId)` garantissant 1 seul statut par jeu/joueur. |
+| **`CustomLists`** | Listes de jeux personnalisées créées par un membre (ex: "Mes coups de cœur 2024"). | Clé étrangère vers `Users(Id)`. |
+| **`CustomListGame`** | Table de jointure (relation N:N) associant plusieurs jeux à plusieurs listes. | Clés composites `(CustomListsId, GamesInListId)`. |
+| **`MemberFavoriteGames`** | Table de liaison (relation N:N) pour les jeux mis en favoris par un membre. | Clés composites `(FavoritedById, FavoriteGamesId)`. |
+| **`__EFMigrationsHistory`** | Table technique d'EF Core assurant le suivi de versioning du schéma SQL. | Clé primaire `MigrationId`. |
+
+### 3. Visualisation de la base (`gamebox.db`)
+Le fichier de base de données se trouve à la racine du projet (`gamebox.db`). Il peut être inspecté :
+- **Dans l'IDE :** Via l'extension **SQLite Viewer** en cliquant directement sur le fichier `gamebox.db`.
+- **Avec un outil dédié :** Via le logiciel gratuit **DB Browser for SQLite** (onglets *Structure de la base de données* et *Parcourir les données*).
+
+---
+
 ## Fonctionnalités du Sprint & Détails d'Implémentation
 
 ### GBX-65 - Création des modèles POO et génération des tables SQLite
