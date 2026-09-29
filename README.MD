@@ -9,119 +9,54 @@ Gamebox est une plateforme web de suivi et de critique de jeux-vidéos s’inspi
 - **Front-end :** HTML, CSS, framework Bootstrap 5
 - **Données externes :** API RAWG
 
-## Architecture Technique (POO)
-Le projet respecte les concepts de la programmation orientée objet, avec notamment une classe abstraite `User` héritée par `Member` et `Administrator`.
+---
 
-## GBX-6 - Fiche jeu
-La fonctionnalité de fiche jeu permet de cliquer sur un jeu depuis le catalogue et d'afficher une page de détails.
+## Fonctionnalités du Sprint & Détails d'Implémentation
 
-La fiche contient :
-- la couverture et le titre du jeu ;
-- le développeur et la date de sortie ;
-- le synopsis, limité à cinq lignes ;
-- les genres sous forme de tags ;
-- la note moyenne et le nombre d'avis de la communauté.
+### GBX-65 - Création des modèles POO et génération des tables SQLite
+Mise en place de l'architecture de la base de données.
+- **Modélisation (POO) :** Création des classes C# dans le dossier `Models/` (`User`, `Member`, `Administrator`, `Game`, `Review`, `CustomList`). Utilisation de l'héritage pour différencier les rôles au sein d'une seule table `Users`.
+- **EF Core :** Configuration du contexte `AppDbContext` avec `DbSet` et utilisation de l'API Fluente (`OnModelCreating`) pour définir les clés primaires composites et les relations entre les tables.
+- **Migrations :** Génération du schéma de la base de données locale `gamebox.db` via les commandes `dotnet ef migrations add` et `dotnet ef database update`.
 
-Les informations générales sont récupérées depuis l'API RAWG. La note communautaire est calculée à partir des avis enregistrés dans la base SQLite.
+### GBX-71 - Système d'authentification (Inscription / Connexion)
+Création de compte et connexion avec authentification par cookie ASP.NET Core.
+- **Modèles :** Hachage sécurisé des mots de passe avec la librairie `BCrypt.Net-Next` avant l'enregistrement en base.
+- **Contrôleur (`AuthController`) :** Traitement des vues d'inscription et de connexion. Création d'un cookie de session (`HttpContext.SignInAsync`) persistant pendant 14 jours (avec option « Keep me signed in »). Gestion de la déconnexion avec invalidation du cookie et vérification stricte de l'unicité du nom d'utilisateur et de l'email.
+- **Vues :** Formulaires sécurisés avec protection antiforgery, champs requis, et affichage dynamique du statut connecté (Hello, Username) dans la barre de navigation.
 
-Pour utiliser cette fonctionnalité, renseigner une clé RAWG valide dans `appsettings.json`, puis lancer le projet avec :
+### GBX-5 - Recherche de jeux
+Implémentation d'une barre de recherche connectée à l'API RAWG pour parcourir le catalogue.
+- **Code Service :** Création de l'interface `IGameApiService` et de son implémentation `GameApiService` utilisant un `HttpClient` pour requêter l'API externe avec une clé configurée dans `appsettings.json`.
+- **Contrôleur :** L'action `Search` du `GamesController` traite la requête GET, interroge l'API, et retourne les résultats via une liste d'objets DTO (`GameDto`).
+- **Vue :** Affichage asynchrone des résultats sous forme de cartes fluides intégrées dans une grille Bootstrap.
 
-```powershell
-dotnet run
-```
+### GBX-6 - Fiche détaillée d'un jeu
+Consultation d'une fiche complète lors du clic sur un jeu du catalogue.
+- **Code Service :** Ajout de la méthode `GetGameDetailsAsync(id)` dans `GameApiService` pour interroger l'endpoint spécifique d'un jeu (API RAWG) et désérialiser la réponse JSON (`RawgGameDetailsDto`).
+- **Contrôleur :** L'action `Details(int id)` fusionne les données externes (développeur, couverture, synopsis fournis par l'API) et les données internes (liste des avis communautaires `Review` récupérés via SQLite pour le calcul de la moyenne).
+- **Vue (`Details.cshtml`) :** Utilisation de Razor (C#) pour extraire et limiter dynamiquement la taille du synopsis. Intégration de l'image de couverture (`BackgroundImage`) en en-tête de page.
 
-### Tests GBX-6
-- Vérifier que les cartes du catalogue redirigent vers `/Games/Details/{id}`.
-- Vérifier que le titre, la couverture, le développeur et le synopsis correspondent au jeu sélectionné.
-- Vérifier que le synopsis ne dépasse pas cinq lignes.
-- Vérifier que les genres RAWG apparaissent sous forme de tags.
-- Vérifier que la note communautaire et le nombre d'avis sont affichés lorsque des avis existent.
-- Vérifier qu'une erreur claire apparaît si l'API RAWG est inaccessible.
-- Validation technique effectuée avec `dotnet build`.
+### GBX-7 - Rédiger une critique et noter
+Permettre à un joueur d'attribuer une note sur 5 et de rédiger un avis public.
+- **Code (Modèles) :** La classe `Review` lie un utilisateur (`MemberId`), un jeu (`GameId`), et stocke une note (`Rating`) ainsi qu'un commentaire (`Comment`).
+- **Contrôleur :** L'action HTTP POST `AddReview` s'assure via l'attribut `[Authorize]` que l'utilisateur est connecté. Elle garantit l'existence locale du jeu, insère la critique en base, puis recalcule et met à jour dynamiquement la note communautaire moyenne (`AverageRating`) du jeu.
+- **Vue :** Affichage d'une fenêtre modale Bootstrap permettant la soumission du formulaire, et apparition immédiate de l'avis dans la liste chronologique sous la fiche du jeu.
 
-## GBX-71 - Authentification
+### GBX-8 - Définir le statut d'un jeu
+Classer un jeu (À jouer, En cours, Terminé, Abandonné) sans rafraîchir la page Web.
+- **Code (Modèles) :** Création de l'énumération `GameStatus` et de la table de liaison `MemberGameStatus` pour sauvegarder l'état personnel d'un jeu pour chaque compte.
+- **Contrôleur :** L'action POST `UpdateGameStatus` vérifie la présence du header HTTP `X-Requested-With` pour identifier une requête JavaScript, renvoyant ainsi une réponse JSON (`{ success: true }`) au lieu d'une redirection HTML classique.
+- **Vue & JavaScript :** Utilisation d'un composant de type menu déroulant (dropdown) Bootstrap. Un script JavaScript intercepte l'événement de soumission, contacte le serveur en tâche de fond avec l'API `fetch`, et met à jour en temps réel l'apparence visuelle du bouton (couleur CSS et libellé) selon le nouveau statut choisi.
 
-Le site propose une création de compte et une connexion avec authentification par cookie ASP.NET Core.
+---
 
-### Fonctionnalités
-
-- Création d'un compte membre avec username, email et mot de passe.
-- Vérification de l'email, de la longueur du username et de la confirmation du mot de passe.
-- Vérification de l'unicité du username et de l'email.
-- Hachage des mots de passe avec `BCrypt.Net-Next` avant l'enregistrement en base.
-- Connexion avec le username ou l'email.
-- Cookie de session persistant pendant 14 jours avec expiration glissante.
-- Option « Keep me signed in » pour conserver la session.
-- Déconnexion avec invalidation du cookie.
-- Protection antiforgery sur les formulaires POST.
-- Logo Gamebox affiché depuis `wwwroot/images/gamebox_logo.png`.
-
-### Routes d'authentification
-
-| Méthode | URL | Description |
-| --- | --- | --- |
-| `GET` | `/Auth/Login` | Affiche le formulaire de connexion |
-| `POST` | `/Auth/Login` | Vérifie les identifiants et crée le cookie |
-| `GET` | `/Auth/Register` | Affiche le formulaire d'inscription |
-| `POST` | `/Auth/Register` | Crée le membre et ouvre sa session |
-| `POST` | `/Auth/Logout` | Supprime le cookie de session |
-
-### Lancer l'application
-
-Depuis le dossier du projet :
-
+## Instructions d'exécution
+Depuis le dossier racine du projet (contenant le fichier `.csproj`), exécutez :
 ```powershell
 dotnet restore
+dotnet build
 dotnet run
 ```
-
-Le profil de lancement ouvre automatiquement la page de connexion :
-
-- HTTP : `http://localhost:5231/Auth/Login`
-- HTTPS : `https://localhost:7035/Auth/Login`
-
-### Compte de démonstration local
-
-Un compte de démonstration a été créé dans la base SQLite locale `gamebox.db` :
-
-| Champ | Valeur |
-| --- | --- |
-| Username | `demo` |
-| Email | `demo@gamebox.local` |
-| Mot de passe | `Gamebox123!` |
-
-Ce compte est prévu uniquement pour le développement local. Il ne doit pas être utilisé en production.
-
-### Tests GBX-71
-
-#### Tests manuels fonctionnels
-
-1. Ouvrir `/Auth/Register` et vérifier que le formulaire contient username, email, mot de passe et confirmation.
-2. Soumettre un formulaire valide et vérifier la redirection vers `/`.
-3. Vérifier que la barre de navigation affiche `Hello, demo` après l'inscription.
-4. Se déconnecter, ouvrir `/Auth/Login`, puis se connecter avec le username `demo`.
-5. Refaire le test de connexion avec l'email `demo@gamebox.local`.
-6. Vérifier qu'un mauvais mot de passe affiche une erreur sans créer de session.
-7. Vérifier qu'un username ou un email déjà utilisé est refusé à l'inscription.
-8. Vérifier que la déconnexion retire les informations de session et renvoie vers `/Auth/Login`.
-9. Fermer puis rouvrir le navigateur avec l'option `Keep me signed in` activée et vérifier la persistance du cookie.
-
-#### Tests techniques exécutés
-
-```powershell
-dotnet build
-```
-
-Le build doit se terminer sans erreur.
-
-Test rapide des routes avec PowerShell :
-
-```powershell
-$login = Invoke-WebRequest http://localhost:5231/Auth/Login -UseBasicParsing
-$register = Invoke-WebRequest http://localhost:5231/Auth/Register -UseBasicParsing
-
-$login.StatusCode
-$register.StatusCode
-```
-
-Les deux réponses attendues sont `200`. Le projet ne contient pas encore de projet de tests automatisés xUnit/NUnit ; les tests fonctionnels ci-dessus sont donc des tests d'intégration manuels exécutables contre l'application locale.
+L'application sera accessible localement via les ports indiqués (ex: `http://localhost:5231` ou `https://localhost:7035`).
+*(Rappel : Pour accéder aux données du catalogue, veillez à utiliser une clé API RAWG valide).*

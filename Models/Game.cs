@@ -12,8 +12,6 @@ public class Game
 
     public List<Review> Reviews { get; set; } = new();
     public List<Member> FavoritedBy { get; set; } = new();
-    public List<Member> InToPlayOf { get; set; } = new();
-    // Lien inverse
-    public List<Member> PlayedBy { get; set; } = new(); 
+    public List<MemberGameStatus> Statuses { get; set; } = new();
     public List<CustomList> CustomLists { get; set; } = new();
 }

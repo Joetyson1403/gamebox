@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<Game> Games => Set<Game>();
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<CustomList> CustomLists => Set<CustomList>();
+    public DbSet<MemberGameStatus> MemberGameStatuses => Set<MemberGameStatus>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,16 +33,18 @@ public class AppDbContext : DbContext
             .WithMany(g => g.FavoritedBy)
             .UsingEntity(j => j.ToTable("MemberFavoriteGames"));
 
-        // Création de la table de liaison pour les jeux "À jouer"
-        modelBuilder.Entity<Member>()
-            .HasMany(m => m.ToPlay)
-            .WithMany(g => g.InToPlayOf)
-            .UsingEntity(j => j.ToTable("MemberToPlayGames"));
+        // Création de la table de liaison pour les statuts de jeu
+        modelBuilder.Entity<MemberGameStatus>()
+            .HasKey(mgs => new { mgs.MemberId, mgs.GameId });
 
-        // Création de la table de liaison pour les jeux "Joués"
-        modelBuilder.Entity<Member>()
-            .HasMany(m => m.PlayedGames)
-            .WithMany(g => g.PlayedBy)
-            .UsingEntity(j => j.ToTable("MemberPlayedGames"));
+        modelBuilder.Entity<MemberGameStatus>()
+            .HasOne(mgs => mgs.Member)
+            .WithMany(m => m.GameStatuses)
+            .HasForeignKey(mgs => mgs.MemberId);
+
+        modelBuilder.Entity<MemberGameStatus>()
+            .HasOne(mgs => mgs.Game)
+            .WithMany(g => g.Statuses)
+            .HasForeignKey(mgs => mgs.GameId);
     }
 }
