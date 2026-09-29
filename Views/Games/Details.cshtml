@@ -1,42 +1,169 @@
-@model gamebox.Models.Game
+@using System.Text.RegularExpressions
+@model gamebox.Models.RawgGameDetailsDto
 
 @{
-    ViewData["Title"] = Model.Title;
+    ViewData["Title"] = Model.Name;
+
+    var communityRating = ViewBag.CommunityRating as double?;
+    var reviewCount = (int)(ViewBag.CommunityReviewCount ?? 0);
+
+    var developer = Model.Developers.FirstOrDefault()?.Name
+        ?? "Développeur inconnu";
+
+    var description = string.IsNullOrWhiteSpace(Model.Description)
+        ? "Aucun synopsis disponible."
+        : Model.Description.Trim();
+
+    var summary = string.Join(" ", Regex.Split(
+        description,
+        @"(?<=[.!?])\s+")
+        .Where(sentence => !string.IsNullOrWhiteSpace(sentence))
+        .Take(2));
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-4">
-            <img src="@Model.CoverUrl" alt="@Model.Title" class="img-fluid" />
-        </div>
-        <div class="col-md-8">
-            <h2>@Model.Title</h2>
-            <p class="text-muted">@Model.Studio — @Model.ReleaseYear</p>
-            <p>@Model.Description</p>
+<div class="game-details-page">
 
-            <h4>Note moyenne :
-                @if (Model.Reviews != null && Model.Reviews.Count > 0)
-                {
-                    <span class="badge bg-primary">@Model.AverageRating.ToString("0.0")</span>
-                }
-                else
-                {
-                    <span class="text-muted">Pas encore noté</span>
-                }
-            </h4>
-        </div>
-    </div>
+    <header class="game-details-header">
+        <a asp-action="Search"
+           class="back-button"
+           aria-label="Retour au catalogue">
+            &#8249;
+        </a>
 
-    <hr />
+        <h1>Game Detail</h1>
 
-    <div class="row">
-        <div class="col-md-6">
-            <h5>Ajouter un avis</h5>
-            @Html.Partial("_ReviewForm", (gamebox.ViewModels.ReviewCreateViewModel)ViewBag.ReviewModel)
+        <span class="header-spacer"></span>
+    </header>
+
+    <main class="game-details-content">
+
+        @if (!string.IsNullOrWhiteSpace(Model.BackgroundImage))
+        {
+            <img src="@Model.BackgroundImage"
+                 class="details-cover"
+                 alt="@Model.Name" />
+        }
+
+        <div class="details-information">
+
+            <h2>@Model.Name</h2>
+
+            <p class="details-meta">
+                <strong>@developer</strong>
+                <span>•</span>
+                @Model.Released
+            </p>
+
+            <p class="details-description">
+                @summary
+            </p>
+
+            @if (Model.Genres.Any())
+            {
+                <div class="genre-section">
+                    <h3>Genre Tags</h3>
+
+                    <div class="genre-tags">
+                        @foreach (var genre in Model.Genres)
+                        {
+                            <span>@genre.Name</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            <section class="community-rating"
+                     aria-label="Note moyenne de la communauté">
+
+                <div class="rating-score">
+                    @(communityRating?.ToString("0.0") ?? "—")
+                </div>
+
+                <div class="rating-bars" aria-hidden="true">
+
+                    @for (var rating = 5; rating >= 1; rating--)
+                    {
+                        var width = communityRating.HasValue
+                            ? Math.Min(
+                                100,
+                                communityRating.Value / 5 * rating * 20)
+                            : 0;
+
+                        <div>
+                            <span>@rating</span>
+                            <i style="width: @width%"></i>
+                        </div>
+                    }
+
+                </div>
+
+                <div class="rating-stars">
+                    ★★★★★
+                </div>
+
+                <small>
+                    @reviewCount avis de la communauté
+                </small>
+
+            </section>
+
+            <!-- Système de reviews -->
+            <hr />
+
+            <div class="row">
+
+                <div class="col-md-6">
+
+                    <h3>Ajouter un avis</h3>
+
+                    @Html.Partial(
+                        "_ReviewForm",
+                        (gamebox.ViewModels.ReviewCreateViewModel)
+                            ViewBag.ReviewModel
+                    )
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <h3>Avis</h3>
+
+                    @if (ViewBag.Reviews != null)
+                    {
+                        @Html.Partial(
+                            "_ReviewList",
+                            (IEnumerable<gamebox.Models.Review>)
+                                ViewBag.Reviews
+                        )
+                    }
+
+                </div>
+
+            </div>
+
+            <div class="details-actions">
+
+                <button type="button"
+                        class="details-secondary-button">
+                    Rate or Review
+                </button>
+
+                <button type="button"
+                        class="details-primary-button">
+                    Add to Journal
+                </button>
+
+            </div>
+
+            <h3>Studio Info</h3>
+
+            <div class="studio-info">
+                <span>Developer</span>
+                <strong>@developer</strong>
+            </div>
+
         </div>
-        <div class="col-md-6">
-            <h5>Avis</h5>
-            @Html.Partial("_ReviewList", (IEnumerable<gamebox.Models.Review>)Model.Reviews)
-        </div>
-    </div>
+
+    </main>
+
 </div>

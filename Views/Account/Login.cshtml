@@ -1,0 +1,37 @@
+@model gamebox.ViewModels.LoginViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Login";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Gamebox</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="auth-page">
+    <main class="auth-shell">
+        <section class="auth-panel" aria-labelledby="login-title">
+            <img class="gamebox-logo" src="~/images/gamebox_logo.png" alt="Gamebox logo" />
+            <h1 id="login-title">Gamebox</h1>
+
+            <form asp-action="Login" method="post" class="auth-form">
+                <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+                <div asp-validation-summary="ModelOnly" class="auth-error" role="alert"></div>
+                <label asp-for="UsernameOrEmail"></label>
+                <input asp-for="UsernameOrEmail" autocomplete="username" placeholder="Username" autofocus />
+                <span asp-validation-for="UsernameOrEmail" class="field-error"></span>
+                <label asp-for="Password"></label>
+                <input asp-for="Password" autocomplete="current-password" placeholder="Password" />
+                <span asp-validation-for="Password" class="field-error"></span>
+                <label class="auth-checkbox"><input asp-for="RememberMe" /> <span>Keep me signed in</span></label>
+                <button type="submit" class="auth-submit">Login</button>
+            </form>
+        </section>
+        <p class="auth-switch">Don't have an account? <a asp-action="Register">Sign Up</a></p>
+    </main>
+    <partial name="_ValidationScriptsPartial" />
+</body>
+</html>
