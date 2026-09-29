@@ -1,0 +1,22 @@
+@model IEnumerable<gamebox.Models.Review>?
+
+@if (Model == null || !Model.Any())
+{
+    <p class="text-muted">Aucun avis pour ce jeu.</p>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var r in Model.OrderByDescending(r => r.ReviewDate))
+        {
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">@String.Concat(Enumerable.Repeat("★", (int)Math.Round(r.Rating)))</h6>
+                    <small class="text-muted">@r.ReviewDate.ToLocalTime().ToString("yyyy-MM-dd")</small>
+                </div>
+                <p class="mb-1">@r.Comment</p>
+                <small class="text-muted">Par @r.Member?.Username</small>
+            </div>
+        }
+    </div>
+}
