@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<Game> Games => Set<Game>();
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<CustomList> CustomLists => Set<CustomList>();
+    public DbSet<UserGameStatus> UserGameStatuses => Set<UserGameStatus>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,5 +44,22 @@ public class AppDbContext : DbContext
             .HasMany(m => m.PlayedGames)
             .WithMany(g => g.PlayedBy)
             .UsingEntity(j => j.ToTable("MemberPlayedGames"));
+
+        // Liaison pour le statut de jeu par membre (ToPlay, Playing, Completed, Dropped)
+        modelBuilder.Entity<UserGameStatus>()
+            .HasIndex(ugs => new { ugs.MemberId, ugs.GameId })
+            .IsUnique();
+
+        modelBuilder.Entity<UserGameStatus>()
+            .HasOne(ugs => ugs.Member)
+            .WithMany(m => m.GameStatuses)
+            .HasForeignKey(ugs => ugs.MemberId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserGameStatus>()
+            .HasOne(ugs => ugs.Game)
+            .WithMany(g => g.UserStatuses)
+            .HasForeignKey(ugs => ugs.GameId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

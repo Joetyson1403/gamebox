@@ -25,6 +25,14 @@ builder.Services.AddHttpClient<gamebox.Services.IGameApiService, gamebox.Service
 
 var app = builder.Build();
 
+// Initialiser la base de données et les données de test (GBX-8)
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AppDbContext>();
+    DbInitializer.Initialize(context);
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

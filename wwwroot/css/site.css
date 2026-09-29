@@ -467,3 +467,90 @@ body {
     font-size: 2rem;
   }
 }
+/* ==========================================================================
+   GBX-8 : Game Progression Status Styles (GBX-30, GBX-31, GBX-32)
+   ========================================================================== */
+.status-dropdown-container {
+  flex: 1;
+  position: relative;
+}
+
+.details-status-button {
+  width: 100%;
+  min-height: 40px;
+  border-radius: 8px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.status-badge-none {
+  background: #ff5b20;
+  border-color: #ff5b20;
+  color: white;
+}
+.status-badge-none:hover {
+  background: #e04a14;
+  color: white;
+}
+
+.status-badge-toplay {
+  background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+  border-color: #0dcaf0;
+  color: #000 !important;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(13, 202, 240, 0.3);
+}
+
+.status-badge-playing {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+  border-color: #ffc107;
+  color: #000 !important;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.status-badge-completed {
+  background: linear-gradient(135deg, #198754 0%, #157347 100%);
+  border-color: #198754;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+}
+
+.status-badge-dropped {
+  background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%);
+  border-color: #dc3545;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.status-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1e2438;
+  color: white;
+  border: 1px solid #303951;
+  padding: 12px 24px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.status-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
