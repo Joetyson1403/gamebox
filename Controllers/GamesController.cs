@@ -70,12 +70,24 @@ public class GamesController : Controller
             : (double?)null;
         ViewBag.CommunityReviewCount = reviews.Count;
 
+        var ratingCounts = new Dictionary<int, int>();
+        for (int i = 1; i <= 5; i++) ratingCounts[i] = 0;
+        foreach (var r in reviews)
+        {
+            if (r.Rating >= 1 && r.Rating <= 5)
+                ratingCounts[(int)Math.Round(r.Rating)]++;
+        }
+        ViewBag.RatingDistribution = ratingCounts;
+
         GameStatus? currentStatus = null;
+        Review? userReview = null;
         if (User.Identity?.IsAuthenticated == true)
         {
             var memberIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (int.TryParse(memberIdStr, out var memberId))
             {
+                userReview = reviews.FirstOrDefault(r => r.MemberId == memberId);
+
                 var statusEntry = await _dbContext.MemberGameStatuses
                     .FirstOrDefaultAsync(s => s.GameId == id && s.MemberId == memberId);
                 if (statusEntry != null)
@@ -85,6 +97,7 @@ public class GamesController : Controller
             }
         }
         ViewBag.CurrentStatus = currentStatus;
+        ViewBag.UserReview = userReview;
 
         return View(game);
     }
@@ -119,22 +132,62 @@ public class GamesController : Controller
             _dbContext.Games.Add(game);
         }
 
-        var review = new Review
+        var existingReview = await _dbContext.Reviews.FirstOrDefaultAsync(r => r.GameId == id && r.MemberId == memberId);
+        if (existingReview != null)
         {
-            GameId = id,
-            MemberId = memberId,
-            Rating = rating,
-            Comment = comment,
-            ReviewDate = DateTime.UtcNow
-        };
-        _dbContext.Reviews.Add(review);
-        await _dbContext.SaveChangesAsync(); // Save to generate review Id and ensure it's in DB
+            existingReview.Rating = rating;
+            existingReview.Comment = comment;
+            existingReview.ReviewDate = DateTime.UtcNow;
+        }
+        else
+        {
+            var review = new Review
+            {
+                GameId = id,
+                MemberId = memberId,
+                Rating = rating,
+                Comment = comment,
+                ReviewDate = DateTime.UtcNow
+            };
+            _dbContext.Reviews.Add(review);
+        }
+        
+        await _dbContext.SaveChangesAsync(); // Save to ensure it's in DB
 
         // Recalculate average rating
         var allRatings = await _dbContext.Reviews.Where(r => r.GameId == id).Select(r => r.Rating).ToListAsync();
         game.AverageRating = allRatings.Any() ? allRatings.Average() : 0;
         
         await _dbContext.SaveChangesAsync();
+
+        return RedirectToAction(nameof(Details), new { id = id });
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> DeleteReview(int id)
+    {
+        var memberIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(memberIdStr, out var memberId))
+        {
+            return Unauthorized();
+        }
+
+        var review = await _dbContext.Reviews.FirstOrDefaultAsync(r => r.GameId == id && r.MemberId == memberId);
+        if (review != null)
+        {
+            _dbContext.Reviews.Remove(review);
+            await _dbContext.SaveChangesAsync();
+
+            // Recalculate average rating
+            var game = await _dbContext.Games.FirstOrDefaultAsync(g => g.Id == id);
+            if (game != null)
+            {
+                var allRatings = await _dbContext.Reviews.Where(r => r.GameId == id).Select(r => r.Rating).ToListAsync();
+                game.AverageRating = allRatings.Any() ? allRatings.Average() : 0;
+                await _dbContext.SaveChangesAsync();
+            }
+        }
 
         return RedirectToAction(nameof(Details), new { id = id });
     }

@@ -51,8 +51,10 @@
                 <div class="rating-bars" aria-hidden="true">
                     @for (var rating = 5; rating >= 1; rating--)
                     {
-                        var width = communityRating.HasValue ? Math.Min(100, communityRating.Value / 5 * rating * 20) : 0;
-                        <div><span>@rating</span><i style="width: @width%"></i></div>
+                        var distribution = ViewBag.RatingDistribution as Dictionary<int, int>;
+                        var count = distribution != null && distribution.ContainsKey(rating) ? distribution[rating] : 0;
+                        var width = reviewCount > 0 ? (count * 100.0 / reviewCount) : 0;
+                        <div><span>@rating</span><i style="width: @width.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></i></div>
                     }
                 </div>
                 <div class="rating-stars">★★★★★</div>
@@ -172,26 +174,37 @@
             <div class="modal-body">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
+                    var userReview = ViewBag.UserReview as gamebox.Models.Review;
                     <form asp-action="AddReview" method="post">
                         <input type="hidden" name="id" value="@Model.Id" />
                         <div class="mb-3">
                             <label for="rating" class="form-label">Note (sur 5)</label>
                             <select name="rating" id="rating" class="form-select bg-dark text-white border-secondary" required>
                                 <option value="">Sélectionnez une note...</option>
-                                <option value="5">⭐⭐⭐⭐⭐</option>
-                                <option value="4">⭐⭐⭐⭐</option>
-                                <option value="3">⭐⭐⭐</option>
-                                <option value="2">⭐⭐</option>
-                                <option value="1">⭐</option>
+                                <!option value="5" @(userReview?.Rating == 5 ? "selected" : "")>⭐⭐⭐⭐⭐</!option>
+                                <!option value="4" @(userReview?.Rating == 4 ? "selected" : "")>⭐⭐⭐⭐</!option>
+                                <!option value="3" @(userReview?.Rating == 3 ? "selected" : "")>⭐⭐⭐</!option>
+                                <!option value="2" @(userReview?.Rating == 2 ? "selected" : "")>⭐⭐</!option>
+                                <!option value="1" @(userReview?.Rating == 1 ? "selected" : "")>⭐</!option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="comment" class="form-label">Votre avis</label>
-                            <textarea name="comment" id="comment" rows="4" class="form-control bg-dark text-white border-secondary" required></textarea>
+                            <textarea name="comment" id="comment" rows="4" class="form-control bg-dark text-white border-secondary" required>@(userReview?.Comment)</textarea>
                         </div>
-                        <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annuler</button>
-                            <button type="submit" class="btn btn-primary">Soumettre l'avis</button>
+                        <div class="d-flex justify-content-between">
+                            @if (userReview != null)
+                            {
+                                <button type="submit" asp-action="DeleteReview" formnovalidate class="btn btn-danger">Supprimer</button>
+                            }
+                            else
+                            {
+                                <div></div>
+                            }
+                            <div>
+                                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annuler</button>
+                                <button type="submit" class="btn btn-primary">Soumettre l'avis</button>
+                            </div>
                         </div>
                     </form>
                 }
