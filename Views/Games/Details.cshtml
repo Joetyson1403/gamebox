@@ -51,8 +51,10 @@
                 <div class="rating-bars" aria-hidden="true">
                     @for (var rating = 5; rating >= 1; rating--)
                     {
-                        var width = communityRating.HasValue ? Math.Min(100, communityRating.Value / 5 * rating * 20) : 0;
-                        <div><span>@rating</span><i style="width: @width%"></i></div>
+                        var distribution = ViewBag.RatingDistribution as Dictionary<int, int>;
+                        var count = distribution != null && distribution.ContainsKey(rating) ? distribution[rating] : 0;
+                        var width = reviewCount > 0 ? (count * 100.0 / reviewCount) : 0;
+                        <div><span>@rating</span><i style="width: @width.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></i></div>
                     }
                 </div>
                 <div class="rating-stars">★★★★★</div>
@@ -60,12 +62,215 @@
             </section>
 
             <div class="details-actions">
-                <button type="button" class="details-secondary-button">Rate or Review</button>
-                <button type="button" class="details-primary-button">Add to Journal</button>
+                <button type="button" class="details-secondary-button" data-bs-toggle="modal" data-bs-target="#reviewModal">Rate or Review</button>
+                
+                <div class="dropdown d-inline-block">
+                    @{
+                        var currentStatus = ViewBag.CurrentStatus as gamebox.Models.GameStatus?;
+                        string statusText = currentStatus switch
+                        {
+                            gamebox.Models.GameStatus.ToPlay => "À jouer",
+                            gamebox.Models.GameStatus.Playing => "En cours",
+                            gamebox.Models.GameStatus.Completed => "Terminé",
+                            gamebox.Models.GameStatus.Dropped => "Abandonné",
+                            _ => "Add to Journal"
+                        };
+                        string statusClass = currentStatus switch
+                        {
+                            gamebox.Models.GameStatus.ToPlay => "btn-info text-white",
+                            gamebox.Models.GameStatus.Playing => "btn-warning",
+                            gamebox.Models.GameStatus.Completed => "btn-success text-white",
+                            gamebox.Models.GameStatus.Dropped => "btn-danger text-white",
+                            _ => "details-primary-button"
+                        };
+                    }
+                    <button class="btn @statusClass dropdown-toggle" style="min-width: 180px;" type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        @statusText
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="statusDropdown">
+                        <li>
+                            <form asp-action="UpdateGameStatus" method="post" class="status-update-form">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <input type="hidden" name="status" value="ToPlay" />
+                                <button type="submit" class="dropdown-item @(currentStatus == gamebox.Models.GameStatus.ToPlay ? "active" : "")">À jouer</button>
+                            </form>
+                        </li>
+                        <li>
+                            <form asp-action="UpdateGameStatus" method="post" class="status-update-form">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <input type="hidden" name="status" value="Playing" />
+                                <button type="submit" class="dropdown-item @(currentStatus == gamebox.Models.GameStatus.Playing ? "active" : "")">En cours</button>
+                            </form>
+                        </li>
+                        <li>
+                            <form asp-action="UpdateGameStatus" method="post" class="status-update-form">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <input type="hidden" name="status" value="Completed" />
+                                <button type="submit" class="dropdown-item @(currentStatus == gamebox.Models.GameStatus.Completed ? "active" : "")">Terminé</button>
+                            </form>
+                        </li>
+                        <li>
+                            <form asp-action="UpdateGameStatus" method="post" class="status-update-form">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <input type="hidden" name="status" value="Dropped" />
+                                <button type="submit" class="dropdown-item @(currentStatus == gamebox.Models.GameStatus.Dropped ? "active" : "")">Abandonné</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
             <h3>Studio Info</h3>
             <div class="studio-info"><span>Developer</span><strong>@developer</strong></div>
+
+            <hr class="my-4 border-secondary" />
+
+            <h3 class="mt-4 mb-3">Avis de la communauté</h3>
+            @{
+                var reviewsList = ViewBag.Reviews as List<gamebox.Models.Review>;
+            }
+
+            @if (reviewsList != null && reviewsList.Any())
+            {
+                <div class="list-group mb-5">
+                    @foreach (var r in reviewsList)
+                    {
+                        <div class="list-group-item bg-dark text-white border-secondary mb-2 rounded">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1 text-primary">@r.Member.Username</h5>
+                                <small class="text-muted">@r.ReviewDate.ToString("dd/MM/yyyy")</small>
+                            </div>
+                            <p class="mb-1">
+                                @for (int i = 0; i < r.Rating; i++)
+                                {
+                                    <span class="text-warning">★</span>
+                                }
+                                @for (int i = (int)r.Rating; i < 5; i++)
+                                {
+                                    <span class="text-secondary">☆</span>
+                                }
+                            </p>
+                            <p class="mb-1">@r.Comment</p>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-5">Aucun avis pour le moment. Soyez le premier à donner votre avis !</p>
+            }
         </div>
     </main>
 </div>
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="reviewModalLabel">Rédiger un avis</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    var userReview = ViewBag.UserReview as gamebox.Models.Review;
+                    <form asp-action="AddReview" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label for="rating" class="form-label">Note (sur 5)</label>
+                            <select name="rating" id="rating" class="form-select bg-dark text-white border-secondary" required>
+                                <option value="">Sélectionnez une note...</option>
+                                <!option value="5" @(userReview?.Rating == 5 ? "selected" : "")>⭐⭐⭐⭐⭐</!option>
+                                <!option value="4" @(userReview?.Rating == 4 ? "selected" : "")>⭐⭐⭐⭐</!option>
+                                <!option value="3" @(userReview?.Rating == 3 ? "selected" : "")>⭐⭐⭐</!option>
+                                <!option value="2" @(userReview?.Rating == 2 ? "selected" : "")>⭐⭐</!option>
+                                <!option value="1" @(userReview?.Rating == 1 ? "selected" : "")>⭐</!option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Votre avis</label>
+                            <textarea name="comment" id="comment" rows="4" class="form-control bg-dark text-white border-secondary" required>@(userReview?.Comment)</textarea>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            @if (userReview != null)
+                            {
+                                <button type="submit" asp-action="DeleteReview" formnovalidate class="btn btn-danger">Supprimer</button>
+                            }
+                            else
+                            {
+                                <div></div>
+                            }
+                            <div>
+                                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annuler</button>
+                                <button type="submit" class="btn btn-primary">Soumettre l'avis</button>
+                            </div>
+                        </div>
+                    </form>
+                }
+                else
+                {
+                    <div class="alert alert-info bg-dark text-info border-info mb-0">
+                        Veuillez <a asp-controller="Auth" asp-action="Login" class="text-white fw-bold">vous connecter</a> pour rédiger un avis.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.status-update-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const url = this.action;
+                const statusValue = this.querySelector('input[name="status"]').value;
+                const button = this.querySelector('button[type="submit"]');
+                const dropdownToggle = document.getElementById('statusDropdown');
+                
+                fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url; // Handle unauthorized redirects
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.success) {
+                        // Update active state in dropdown
+                        document.querySelectorAll('.status-update-form .dropdown-item').forEach(item => item.classList.remove('active'));
+                        button.classList.add('active');
+                        
+                        // Update dropdown toggle text and styles
+                        const statusTextMap = {
+                            'ToPlay': 'À jouer',
+                            'Playing': 'En cours',
+                            'Completed': 'Terminé',
+                            'Dropped': 'Abandonné'
+                        };
+                        const statusClassMap = {
+                            'ToPlay': 'btn-info text-white',
+                            'Playing': 'btn-warning',
+                            'Completed': 'btn-success text-white',
+                            'Dropped': 'btn-danger text-white'
+                        };
+                        
+                        dropdownToggle.textContent = statusTextMap[statusValue] || 'Add to Journal';
+                        dropdownToggle.className = `btn dropdown-toggle ${statusClassMap[statusValue] || 'details-primary-button'}`;
+                    }
+                })
+                .catch(error => console.error('Error updating status:', error));
+            });
+        });
+    </script>
+}
