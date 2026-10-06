@@ -89,6 +89,12 @@ Classer un jeu (À jouer, En cours, Terminé, Abandonné) sans rafraîchir la pa
 - **Contrôleur :** L'action POST `UpdateGameStatus` vérifie la présence du header HTTP `X-Requested-With` pour identifier une requête JavaScript, renvoyant ainsi une réponse JSON (`{ success: true }`) au lieu d'une redirection HTML classique.
 - **Vue & JavaScript :** Utilisation d'un composant de type menu déroulant (dropdown) Bootstrap. Un script JavaScript intercepte l'événement de soumission, contacte le serveur en tâche de fond avec l'API `fetch`, et met à jour en temps réel l'apparence visuelle du bouton (couleur CSS et libellé) selon le nouveau statut choisi.
 
+### GBX-9 - Tableau de bord personnel
+Accéder à un profil utilisateur pour voir ses statistiques, ses jeux favoris, ses listes personnalisées et sa collection classée par statut.
+- **Code (Modèles) :** Création des classes `CustomList` et `CustomListGame` (table de liaison) pour gérer les listes de jeux par utilisateur. Ajout de propriétés de navigation dans le modèle `Member` pour relier le profil à ses favoris, ses listes et ses statuts de jeux.
+- **Contrôleur :** Création de `ProfileController` avec des actions dédiées (`Index`, `Edit`, `Collection`, `ListDetails`) permettant de récupérer et manipuler les données relatives au profil (statistiques, création/suppression de listes, ajout aux favoris, édition de l'avatar et de la bio).
+- **Vue & UI :** Création d'un tableau de bord moderne et responsive en Bootstrap. Intégration de sections dynamiques (compteurs de jeux calculés en temps réel, affichage sous forme de cartes pour la collection et les listes) et de menus contextuels pour ajouter facilement des jeux aux listes depuis la fiche du jeu.
+
 ---
 
 ## Instructions d'exécution

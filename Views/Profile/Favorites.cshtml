@@ -1,0 +1,40 @@
+@model gamebox.Models.Member
+
+@{
+    ViewData["Title"] = "Mes favoris";
+}
+
+<div class="container mt-4 pb-5">
+    <a asp-action="Index" class="text-decoration-none text-muted mb-4 d-inline-block">&#8592; Back to Profile</a>
+    <h2 class="mb-4">All Favorite Games</h2>
+    
+    @if (Model.FavoriteGames.Any())
+    {
+        <div class="row row-cols-2 row-cols-md-4 g-4">
+            @foreach (var game in Model.FavoriteGames)
+            {
+                <div class="col">
+                    <a asp-controller="Games" asp-action="Details" asp-route-id="@game.Id" class="text-decoration-none">
+                        <div class="card h-100 bg-dark text-white border-secondary" style="transition: transform 0.2s;">
+                            <img src="@game.CoverUrl" class="card-img-top" alt="@game.Title" style="height: 250px; object-fit: cover;">
+                            <div class="card-body p-2">
+                                <h6 class="card-title text-truncate m-0">@game.Title</h6>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">You don't have any favorite games yet.</p>
+    }
+</div>
+
+<style>
+    .card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(255,87,34,0.3);
+    }
+</style>

@@ -1,0 +1,59 @@
+@model gamebox.Models.Member
+
+@{
+    ViewData["Title"] = "Collection";
+    
+    var gamesByStatus = Model.GameStatuses
+        .GroupBy(gs => gs.Status)
+        .OrderBy(g => g.Key)
+        .ToList();
+}
+
+<div class="container mt-4 pb-5">
+    <a asp-action="Index" class="text-decoration-none text-muted mb-4 d-inline-block">&#8592; Back to Profile</a>
+    <h2 class="mb-4">My Collection</h2>
+
+    @if (gamesByStatus.Any())
+    {
+        @foreach (var group in gamesByStatus)
+        {
+            var statusName = group.Key == gamebox.Models.GameStatus.ToPlay ? "To Play" : group.Key.ToString();
+            
+            <h4 class="mt-4 mb-3 border-bottom border-secondary pb-2" style="color: #ff5722;">@statusName <span class="badge bg-secondary text-light ms-2" style="font-size: 0.8rem;">@group.Count()</span></h4>
+            
+            <div class="row row-cols-3 row-cols-md-6 g-3 mb-5">
+                @foreach (var gs in group)
+                {
+                    var review = Model.MyReviews?.FirstOrDefault(r => r.GameId == gs.GameId);
+                    <div class="col">
+                        <a asp-controller="Games" asp-action="Details" asp-route-id="@gs.GameId" class="text-decoration-none">
+                            <div class="card h-100 bg-dark text-white border-secondary collection-card" style="transition: transform 0.2s;">
+                                <img src="@gs.Game.CoverUrl" class="card-img-top" alt="@gs.Game.Title" style="height: 160px; object-fit: cover;">
+                                <div class="card-body p-2 text-center">
+                                    <h6 class="card-title text-truncate m-0" style="font-size: 0.85rem;">@gs.Game.Title</h6>
+                                    @if (review != null)
+                                    {
+                                        <div class="text-warning mt-1" style="font-size: 0.75rem;">
+                                            ★ @review.Rating
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <p class="text-muted">Your collection is empty. Go find some games to play!</p>
+    }
+</div>
+
+<style>
+    .collection-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(255,87,34,0.3);
+    }
+</style>

@@ -1,0 +1,77 @@
+@model gamebox.Models.Member
+
+@{
+    ViewData["Title"] = "Mes listes";
+}
+
+<div class="container mt-4 pb-5">
+    <a asp-action="Index" class="text-decoration-none text-muted mb-4 d-inline-block">&#8592; Back to Profile</a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">All Custom Lists</h2>
+        <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#createListModal">
+            + New List
+        </button>
+    </div>
+    
+    @if (Model.MyCustomLists.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+            @foreach (var list in Model.MyCustomLists)
+            {
+                <div class="col">
+                    <a asp-action="ListDetails" asp-route-id="@list.Id" class="text-decoration-none">
+                        <div class="list-card bg-dark text-white p-3 rounded h-100" style="transition: all 0.2s; cursor:pointer;" onmouseover="this.style.backgroundColor='#2b3035'; this.style.transform='translateY(-3px)'" onmouseout="this.style.backgroundColor=''; this.style.transform='none'">
+                            <div class="d-flex align-items-center">
+                                <div class="list-icon-bg bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; flex-shrink: 0;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-list-stars" viewBox="0 0 16 16">
+                                      <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5z"/>
+                                      <path d="M2.242 2.194a.27.27 0 0 1 .516 0l.162.53c.035.115.14.194.258.194h.551c.259 0 .37.333.164.493l-.468.36a.277.277 0 0 0-.094.3l.173.569c.078.256-.213.462-.423.3l-.417-.324a.267.267 0 0 0-.328 0l-.417.323c-.21.163-.5-.043-.423-.299l.173-.57a.277.277 0 0 0-.094-.299l-.468-.36c-.206-.16-.095-.493.164-.493h.55a.271.271 0 0 0 .259-.194l.162-.53zm0 4a.27.27 0 0 1 .516 0l.162.53c.035.115.14.194.258.194h.551c.259 0 .37.333.164.493l-.468.36a.277.277 0 0 0-.094.3l.173.569c.078.256-.213.462-.423.3l-.417-.324a.267.267 0 0 0-.328 0l-.417.323c-.21.163-.5-.043-.423-.299l.173-.57a.277.277 0 0 0-.094-.299l-.468-.36c-.206-.16-.095-.493.164-.493h.55a.271.271 0 0 0 .259-.194l.162-.53zm0 4a.27.27 0 0 1 .516 0l.162.53c.035.115.14.194.258.194h.551c.259 0 .37.333.164.493l-.468.36a.277.277 0 0 0-.094.3l.173.569c.078.256-.213.462-.423.3l-.417-.324a.267.267 0 0 0-.328 0l-.417.323c-.21.163-.5-.043-.423-.299l.173-.57a.277.277 0 0 0-.094-.299l-.468-.36c-.206-.16-.095-.493.164-.493h.55a.271.271 0 0 0 .259-.194l.162-.53z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1 fw-bold">@list.Title</h5>
+                                    @if (!string.IsNullOrWhiteSpace(list.Description))
+                                    {
+                                        <div class="text-muted small">@list.Description</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">You don't have any lists yet.</p>
+    }
+</div>
+
+<!-- Re-using Create List Modal -->
+<div class="modal fade" id="createListModal" tabindex="-1" aria-labelledby="createListModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="createListModalLabel">Create New List</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="Profile" asp-action="CreateList" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control bg-dark text-white border-secondary" id="title" name="title" required maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control bg-dark text-white border-secondary" id="description" name="description" rows="3" maxlength="500"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background-color: #ff5722; border: none;">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,82 @@
+@model gamebox.Models.Member
+
+@{
+    ViewData["Title"] = "Mon activité";
+    
+    var activities = new List<dynamic>();
+    foreach (var r in Model.MyReviews)
+    {
+        activities.Add(new { 
+            Type = "REVIEWED", 
+            Game = r.Game.Title, 
+            Date = r.ReviewDate, 
+            CoverUrl = r.Game.CoverUrl, 
+            IsReview = true,
+            Rating = r.Rating
+        });
+    }
+    foreach (var s in Model.GameStatuses)
+    {
+        string statusText = s.Status switch
+        {
+            gamebox.Models.GameStatus.ToPlay => "ADDED TO TO PLAY",
+            gamebox.Models.GameStatus.Playing => "ADDED TO PLAYING",
+            gamebox.Models.GameStatus.Completed => "COMPLETED",
+            gamebox.Models.GameStatus.Dropped => "DROPPED",
+            _ => "ADDED"
+        };
+        activities.Add(new { 
+            Type = statusText, 
+            Game = s.Game.Title, 
+            Date = DateTime.MinValue, 
+            CoverUrl = s.Game.CoverUrl,
+            IsReview = false,
+            Rating = 0
+        });
+    }
+    
+    var sortedActivities = activities.OrderByDescending(a => a.Date).ToList();
+}
+
+<div class="container mt-4 pb-5">
+    <a asp-action="Index" class="text-decoration-none text-muted mb-4 d-inline-block">&#8592; Back to Profile</a>
+    <h2 class="mb-4">All Recent Activity</h2>
+    
+    <div class="activity-list-full">
+        @if (sortedActivities.Any())
+        {
+            @foreach (var activity in sortedActivities)
+            {
+                <div class="activity-item-full bg-dark mb-3 rounded p-3 d-flex align-items-center border border-secondary" style="transition: transform 0.2s;">
+                    <img src="@activity.CoverUrl" alt="@activity.Game" class="activity-cover me-3" style="width:70px; height:70px; object-fit:cover; border-radius:8px;" />
+                    <div class="activity-details flex-grow-1">
+                        <div class="text-muted text-uppercase" style="font-size:0.75rem; letter-spacing:1px;">@activity.Type</div>
+                        <div class="fw-bold" style="font-size:1.2rem;">@activity.Game</div>
+                        @if (activity.IsReview)
+                        {
+                            <div class="text-muted small mt-1">
+                                @for (int i = 0; i < activity.Rating; i++) { <span class="text-warning">★</span> }
+                                - @activity.Date.ToString("dd MMM yyyy")
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-muted small mt-1">Recently</div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted">No activity yet.</p>
+        }
+    </div>
+</div>
+
+<style>
+    .activity-item-full:hover {
+        transform: translateX(10px);
+        border-color: #ff5722 !important;
+    }
+</style>

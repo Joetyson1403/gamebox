@@ -99,6 +99,7 @@ public class GamesController : Controller
         // 4. Si un utilisateur est connecté, récupérer son avis personnel et son statut actuel sur ce jeu
         GameStatus? currentStatus = null;
         Review? userReview = null;
+        bool isFavorite = false;
         if (User.Identity?.IsAuthenticated == true)
         {
             var memberIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -112,10 +113,21 @@ public class GamesController : Controller
                 {
                     currentStatus = statusEntry.Status;
                 }
+
+                isFavorite = await _dbContext.Members
+                    .Where(m => m.Id == memberId)
+                    .SelectMany(m => m.FavoriteGames)
+                    .AnyAsync(g => g.Id == id);
+
+                ViewBag.UserLists = await _dbContext.CustomLists
+                    .Include(l => l.GamesInList)
+                    .Where(l => l.MemberId == memberId)
+                    .ToListAsync();
             }
         }
         ViewBag.CurrentStatus = currentStatus;
         ViewBag.UserReview = userReview;
+        ViewBag.IsFavorite = isFavorite;
 
         return View(game);
     }
@@ -280,6 +292,69 @@ public class GamesController : Controller
         }
 
         // Redirection classique si JavaScript est désactivé
+        return RedirectToAction(nameof(Details), new { id = id });
+    }
+    /// <summary>
+    /// Action POST : Toggle le statut favori d'un jeu pour l'utilisateur connecté.
+    /// </summary>
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> ToggleFavorite(int id)
+    {
+        var memberIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(memberIdStr, out var memberId))
+        {
+            return Unauthorized();
+        }
+
+        // S'assurer que le jeu est présent dans la table locale Games
+        var game = await _dbContext.Games.FirstOrDefaultAsync(g => g.Id == id);
+        if (game == null)
+        {
+            var gameDto = await _gameApiService.GetGameDetailsAsync(id);
+            if (gameDto == null) return NotFound();
+
+            game = new Game
+            {
+                Id = gameDto.Id,
+                Title = gameDto.Name,
+                Studio = gameDto.Developers.FirstOrDefault()?.Name ?? "Développeur inconnu",
+                ReleaseYear = DateTime.TryParse(gameDto.Released, out var date) ? date.Year : 0,
+                CoverUrl = gameDto.BackgroundImage ?? "",
+                Description = gameDto.Description,
+                AverageRating = 0
+            };
+            _dbContext.Games.Add(game);
+        }
+
+        var member = await _dbContext.Members
+            .Include(m => m.FavoriteGames)
+            .FirstOrDefaultAsync(m => m.Id == memberId);
+
+        if (member == null)
+        {
+            return Unauthorized();
+        }
+
+        bool isFavorite = false;
+        var existingFavorite = member.FavoriteGames.FirstOrDefault(g => g.Id == id);
+        if (existingFavorite != null)
+        {
+            member.FavoriteGames.Remove(existingFavorite);
+        }
+        else
+        {
+            member.FavoriteGames.Add(game);
+            isFavorite = true;
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+        {
+            return Json(new { success = true, isFavorite = isFavorite });
+        }
+
         return RedirectToAction(nameof(Details), new { id = id });
     }
 }

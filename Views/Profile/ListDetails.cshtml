@@ -1,0 +1,59 @@
+@model gamebox.Models.CustomList
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container mt-4 pb-5">
+    <a asp-action="Lists" class="text-decoration-none text-muted mb-4 d-inline-block">&#8592; Back to Lists</a>
+    <h2 class="mb-2">@Model.Title</h2>
+    @if (!string.IsNullOrWhiteSpace(Model.Description))
+    {
+        <p class="text-muted mb-4">@Model.Description</p>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="m-0">Games (@Model.GamesInList.Count)</h4>
+        <a asp-controller="Games" asp-action="Search" class="btn btn-outline-primary btn-sm">+ Add Games</a>
+    </div>
+
+    @if (Model.GamesInList.Any())
+    {
+        <div class="row row-cols-2 row-cols-md-4 g-4 mb-5">
+            @foreach (var game in Model.GamesInList)
+            {
+                <div class="col position-relative">
+                    <a asp-controller="Games" asp-action="Details" asp-route-id="@game.Id" class="text-decoration-none">
+                        <div class="card h-100 bg-dark text-white border-secondary collection-card" style="transition: transform 0.2s;">
+                            <img src="@game.CoverUrl" class="card-img-top" alt="@game.Title" style="height: 250px; object-fit: cover;">
+                            <div class="card-body p-2 text-center">
+                                <h6 class="card-title text-truncate m-0">@game.Title</h6>
+                            </div>
+                        </div>
+                    </a>
+                    <form asp-action="RemoveGameFromList" method="post" class="position-absolute" style="top: 10px; right: 20px; z-index: 10;">
+                        <input type="hidden" name="listId" value="@Model.Id" />
+                        <input type="hidden" name="gameId" value="@game.Id" />
+                        <button type="submit" class="btn btn-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="Remove from list" onclick="return confirm('Retirer ce jeu de la liste ?');">
+                            &times;
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert bg-dark text-muted border-secondary text-center py-5">
+            <p class="mb-3">This list is empty.</p>
+            <a asp-controller="Games" asp-action="Search" class="btn btn-primary">Chercher des jeux à ajouter</a>
+        </div>
+    }
+</div>
+
+<style>
+    .collection-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(255,87,34,0.3);
+    }
+</style>
