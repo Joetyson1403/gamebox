@@ -16,7 +16,7 @@
 
 <div class="game-details-page">
     <header class="game-details-header">
-        <a asp-action="Search" class="back-button" aria-label="Retour au catalogue">&#8249;</a>
+        <a href="javascript:void(0);" onclick="history.back();" class="back-button" aria-label="Retour">&#8249;</a>
         <h1>Game Detail</h1>
         <span class="header-spacer"></span>
     </header>
@@ -28,8 +28,18 @@
         }
 
         <div class="details-information">
-            <h2>@Model.Name</h2>
-            <p class="details-meta"><strong>@developer</strong><span>•</span>@Model.Released</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">@Model.Name</h2>
+                @{
+                    bool isFavorite = ViewBag.IsFavorite == true;
+                }
+                <button type="button" class="btn btn-favorite rounded-circle border-0 @(isFavorite ? "text-danger" : "text-secondary")" id="favoriteButton" aria-label="Toggle Favorite" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background-color: rgba(255,255,255,0.1); transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                      <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="details-meta mt-1"><strong>@developer</strong><span>•</span>@Model.Released</p>
 
             <p class="details-description">@summary</p>
 
@@ -61,10 +71,10 @@
                 <small>@reviewCount avis de la communauté</small>
             </section>
 
-            <div class="details-actions">
+            <div class="details-actions" style="margin-bottom: 12px;">
                 <button type="button" class="details-secondary-button" data-bs-toggle="modal" data-bs-target="#reviewModal">Rate or Review</button>
                 
-                <div class="dropdown d-inline-block">
+                <div class="dropdown" style="flex: 1;">
                     @{
                         var currentStatus = ViewBag.CurrentStatus as gamebox.Models.GameStatus?;
                         string statusText = currentStatus switch
@@ -84,7 +94,7 @@
                             _ => "details-primary-button"
                         };
                     }
-                    <button class="btn @statusClass dropdown-toggle" style="min-width: 180px;" type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn @statusClass dropdown-toggle w-100" type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         @statusText
                     </button>
                     <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="statusDropdown">
@@ -118,6 +128,48 @@
                         </li>
                     </ul>
                 </div>
+            </div>
+
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="dropdown d-block w-100 mb-4">
+                    <button class="btn btn-outline-light dropdown-toggle w-100" type="button" id="addToListDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border: 1px solid #ff5722; color: #ff5722; transition: all 0.2s; min-height: 40px; border-radius: 8px; font-weight: 600;" onmouseover="this.style.backgroundColor='#ff5722'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ff5722';">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-stars me-1" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5z"/>
+                        </svg> Add to List
+                    </button>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="addToListDropdown">
+                            @{
+                                var userLists = ViewBag.UserLists as List<gamebox.Models.CustomList>;
+                            }
+                            @if (userLists != null && userLists.Any())
+                            {
+                                @foreach (var list in userLists)
+                                {
+                                    bool inList = list.GamesInList.Any(g => g.Id == Model.Id);
+                                    <li>
+                                        @if (inList)
+                                        {
+                                            <span class="dropdown-item text-success">✓ @list.Title</span>
+                                        }
+                                        else
+                                        {
+                                            <form asp-controller="Profile" asp-action="AddGameToList" method="post">
+                                                <input type="hidden" name="listId" value="@list.Id" />
+                                                <input type="hidden" name="gameId" value="@Model.Id" />
+                                                <button type="submit" class="dropdown-item">@list.Title</button>
+                                            </form>
+                                        }
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li><span class="dropdown-item text-muted">No custom lists</span></li>
+                            }
+                        </ul>
+                    </div>
+                }
             </div>
 
             <h3>Studio Info</h3>
@@ -271,6 +323,41 @@
                 })
                 .catch(error => console.error('Error updating status:', error));
             });
+        });
+
+        document.getElementById('favoriteButton')?.addEventListener('click', function() {
+            const btn = this;
+            const gameId = @Model.Id;
+            
+            fetch('/Games/ToggleFavorite/' + gameId, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return null;
+                }
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                if (data && data.success) {
+                    if (data.isFavorite) {
+                        btn.classList.add('text-danger');
+                        btn.classList.remove('text-secondary');
+                    } else {
+                        btn.classList.remove('text-danger');
+                        btn.classList.add('text-secondary');
+                    }
+                }
+            })
+            .catch(error => console.error('Error toggling favorite:', error));
         });
     </script>
 }

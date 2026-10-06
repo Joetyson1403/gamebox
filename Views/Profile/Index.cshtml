@@ -1,0 +1,435 @@
+@model gamebox.Models.Member
+
+@{
+    ViewData["Title"] = "Profil - " + Model.Username;
+}
+
+<style>
+    .profile-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #0b0f19;
+        color: #ffffff;
+        min-height: 100vh;
+        padding-bottom: 2rem;
+    }
+
+    .profile-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 1rem;
+        position: relative;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 12px;
+        object-fit: cover;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .profile-username {
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-actions {
+        display: flex;
+        width: 100%;
+        gap: 0.5rem;
+        padding: 0 1rem;
+    }
+
+    .btn-edit-profile {
+        flex-grow: 1;
+        background-color: #ff5722;
+        color: white;
+        border: none;
+        padding: 0.75rem;
+        border-radius: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        transition: background-color 0.2s;
+    }
+
+    .btn-edit-profile:hover {
+        background-color: #e64a19;
+        color: white;
+    }
+
+    .btn-settings {
+        background-color: #2a2e38;
+        color: white;
+        border: none;
+        padding: 0.75rem;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+    }
+    
+    .btn-settings:hover {
+        background-color: #3e4451;
+        color: white;
+    }
+
+    .profile-stats {
+        display: flex;
+        justify-content: space-around;
+        background-color: #1a1d24;
+        margin: 1.5rem 1rem;
+        border-radius: 8px;
+        padding: 1.5rem 0;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 1rem;
+        margin-bottom: 1rem;
+        margin-top: 2rem;
+    }
+
+    .section-title h2 {
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin: 0;
+    }
+
+    .section-title a {
+        color: #ff5722;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .favorites-carousel {
+        display: flex;
+        overflow-x: auto;
+        padding: 0 1rem;
+        gap: 1rem;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none;  /* IE and Edge */
+    }
+    
+    .favorites-carousel::-webkit-scrollbar {
+        display: none;
+    }
+
+    .favorite-item {
+        flex: 0 0 auto;
+        width: 110px;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .favorite-cover {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+    }
+
+    .activity-list {
+        padding: 0 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .activity-item {
+        background-color: #1a1d24;
+        border-radius: 6px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .activity-cover {
+        width: 45px;
+        height: 60px;
+        border-radius: 4px;
+        object-fit: cover;
+    }
+
+    .activity-details {
+        flex-grow: 1;
+    }
+
+    .activity-type {
+        font-size: 0.75rem;
+        color: #888;
+        text-transform: uppercase;
+        margin-bottom: 0.2rem;
+    }
+
+    .activity-game {
+        font-weight: 500;
+        margin-bottom: 0.2rem;
+    }
+
+    .activity-time {
+        font-size: 0.75rem;
+        color: #ff5722;
+    }
+    
+    .lists-section {
+        padding: 0 1rem;
+        margin-bottom: 2rem;
+    }
+</style>
+
+<div class="profile-container">
+    <header class="profile-header">
+        @{
+            string avatarSrc = "";
+            if (Model.AvatarImage != null && Model.AvatarImage.Length > 0)
+            {
+                var base64 = Convert.ToBase64String(Model.AvatarImage);
+                avatarSrc = $"data:image/jpeg;base64,{base64}";
+            }
+            else if (!string.IsNullOrWhiteSpace(Model.AvatarUrl))
+            {
+                avatarSrc = Model.AvatarUrl;
+            }
+            else
+            {
+                avatarSrc = $"https://api.dicebear.com/7.x/avataaars/svg?seed={Model.Username}";
+            }
+        }
+        <img src="@avatarSrc" alt="@Model.Username" class="profile-avatar" />
+        <h1 class="profile-username">@Model.Username</h1>
+
+        <div class="profile-actions">
+            <a asp-action="Edit" class="btn-edit-profile text-decoration-none text-center d-inline-block">Edit Profile</a>
+        </div>
+    </header>
+
+    <div class="profile-stats">
+        <div class="stat-item">
+            <span class="stat-value">@Model.GameStatuses.Count(gs => gs.Status == gamebox.Models.GameStatus.ToPlay)</span>
+            <span class="stat-label">Games To Play</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value">@Model.GameStatuses.Count(gs => gs.Status == gamebox.Models.GameStatus.Playing || gs.Status == gamebox.Models.GameStatus.Completed)</span>
+            <span class="stat-label">Games Played</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value">@Model.GameStatuses.Count(gs => gs.Status == gamebox.Models.GameStatus.Dropped)</span>
+            <span class="stat-label">Games Dropped</span>
+        </div>
+    </div>
+
+    <div class="section-title mt-2">
+        <h2>My Collection</h2>
+        <a asp-action="Collection">See All</a>
+    </div>
+    
+    @if (Model.GameStatuses.Any())
+    {
+        <div class="favorites-carousel">
+            @foreach (var gs in Model.GameStatuses.OrderByDescending(g => g.GameId).Take(6))
+            {
+                <a asp-controller="Games" asp-action="Details" asp-route-id="@gs.GameId" class="favorite-item position-relative text-decoration-none text-white">
+                    <img src="@gs.Game.CoverUrl" alt="@gs.Game.Title" class="favorite-cover" />
+                    <div class="position-absolute bottom-0 start-0 w-100 p-1 text-center" style="background: rgba(0,0,0,0.8); font-size: 0.65rem; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">
+                        @(gs.Status == gamebox.Models.GameStatus.ToPlay ? "To Play" : gs.Status.ToString())
+                    </div>
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted ps-3">Your collection is empty.</p>
+    }
+    <div class="section-title">
+        <h2>Favorites</h2>
+        <a asp-action="Favorites">See All</a>
+    </div>
+    
+    @if (Model.FavoriteGames.Any())
+    {
+        <div class="favorites-carousel">
+            @foreach (var game in Model.FavoriteGames)
+            {
+                <a asp-controller="Games" asp-action="Details" asp-route-id="@game.Id" class="favorite-item">
+                    <img src="@game.CoverUrl" alt="@game.Title" class="favorite-cover" />
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted ps-3">You don't have any favorite games yet.</p>
+    }
+
+    <div class="section-title">
+        <div class="d-flex align-items-baseline">
+            <h2>Lists</h2>
+            <a href="#" class="ms-3 text-muted text-decoration-none small" data-bs-toggle="modal" data-bs-target="#createListModal">+ Create New</a>
+        </div>
+        <a asp-action="Lists">See All</a>
+    </div>
+    
+    <div class="lists-section">
+        @if (Model.MyCustomLists.Any())
+        {
+            <div class="row row-cols-1 row-cols-md-2 g-2">
+                @foreach (var list in Model.MyCustomLists.Take(4))
+                {
+                    <div class="col">
+                        <a asp-action="ListDetails" asp-route-id="@list.Id" class="text-decoration-none">
+                            <div class="list-card bg-dark text-white p-2 rounded" style="transition: all 0.2s; cursor:pointer;" onmouseover="this.style.backgroundColor='#2b3035'; this.style.transform='translateX(4px)'" onmouseout="this.style.backgroundColor=''; this.style.transform='none'">
+                                <div class="d-flex align-items-center">
+                                    <div class="list-icon-bg bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 35px; height: 35px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-stars" viewBox="0 0 16 16">
+                                          <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5z"/>
+                                          <path d="M2.242 2.194a.27.27 0 0 1 .516 0l.162.53c.035.115.14.194.258.194h.551c.259 0 .37.333.164.493l-.468.36a.277.277 0 0 0-.094.3l.173.569c.078.256-.213.462-.423.3l-.417-.324a.267.267 0 0 0-.328 0l-.417.323c-.21.163-.5-.043-.423-.299l.173-.57a.277.277 0 0 0-.094-.299l-.468-.36c-.206-.16-.095-.493.164-.493h.55a.271.271 0 0 0 .259-.194l.162-.53zm0 4a.27.27 0 0 1 .516 0l.162.53c.035.115.14.194.258.194h.551c.259 0 .37.333.164.493l-.468.36a.277.277 0 0 0-.094.3l.173.569c.078.256-.213.462-.423.3l-.417-.324a.267.267 0 0 0-.328 0l-.417.323c-.21.163-.5-.043-.423-.299l.173-.57a.277.277 0 0 0-.094-.299l-.468-.36c-.206-.16-.095-.493.164-.493h.55a.271.271 0 0 0 .259-.194l.162-.53zm0 4a.27.27 0 0 1 .516 0l.162.53c.035.115.14.194.258.194h.551c.259 0 .37.333.164.493l-.468.36a.277.277 0 0 0-.094.3l.173.569c.078.256-.213.462-.423.3l-.417-.324a.267.267 0 0 0-.328 0l-.417.323c-.21.163-.5-.043-.423-.299l.173-.57a.277.277 0 0 0-.094-.299l-.468-.36c-.206-.16-.095-.493.164-.493h.55a.271.271 0 0 0 .259-.194l.162-.53z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">@list.Title</h6>
+                                        @if (!string.IsNullOrWhiteSpace(list.Description))
+                                        {
+                                            <div class="text-muted text-truncate" style="font-size:0.8rem; max-width: 150px;">@list.Description</div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-muted">You haven't created any lists yet.</p>
+        }
+    </div>
+
+    <div class="section-title mt-4">
+        <h2>Recent Activity</h2>
+        <a asp-action="Activity">See All</a>
+    </div>
+    <div class="activity-list">
+        @{
+            var activities = new List<dynamic>();
+            foreach (var r in Model.MyReviews)
+            {
+                activities.Add(new { 
+                    Type = "REVIEWED", 
+                    Game = r.Game.Title, 
+                    Date = r.ReviewDate, 
+                    CoverUrl = r.Game.CoverUrl, 
+                    IsReview = true,
+                    Rating = r.Rating
+                });
+            }
+            foreach (var s in Model.GameStatuses)
+            {
+                string statusText = s.Status switch
+                {
+                    gamebox.Models.GameStatus.ToPlay => "ADDED TO TO PLAY",
+                    gamebox.Models.GameStatus.Playing => "ADDED TO PLAYING",
+                    gamebox.Models.GameStatus.Completed => "COMPLETED",
+                    gamebox.Models.GameStatus.Dropped => "DROPPED",
+                    _ => "ADDED"
+                };
+                activities.Add(new { 
+                    Type = statusText, 
+                    Game = s.Game.Title, 
+                    Date = DateTime.MinValue, 
+                    CoverUrl = s.Game.CoverUrl,
+                    IsReview = false,
+                    Rating = 0
+                });
+            }
+            
+            var sortedActivities = activities.OrderByDescending(a => a.Date).Take(4).ToList();
+        }
+
+        @if (sortedActivities.Any())
+        {
+            @foreach (var activity in sortedActivities)
+            {
+                <div class="activity-item">
+                    <img src="@activity.CoverUrl" alt="@activity.Game" class="activity-cover" />
+                    <div class="activity-details">
+                        <div class="activity-type">@activity.Type</div>
+                        <div class="activity-game">@activity.Game</div>
+                        @if (activity.IsReview)
+                        {
+                            <div class="activity-time">
+                                @for (int i = 0; i < activity.Rating; i++) { <span class="text-warning">★</span> }
+                                - @activity.Date.ToString("dd MMM yyyy")
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="activity-time">Recently</div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted ps-3">No recent activity.</p>
+        }
+    </div>
+</div>
+
+<!-- Modal Create List -->
+<div class="modal fade" id="createListModal" tabindex="-1" aria-labelledby="createListModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="createListModalLabel">Créer une nouvelle liste</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="Profile" asp-action="CreateList" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Titre de la liste</label>
+                        <input type="text" class="form-control bg-dark text-white border-secondary" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description (optionnelle)</label>
+                        <textarea class="form-control bg-dark text-white border-secondary" id="description" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary" style="background-color: #ff5722; border: none;">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
