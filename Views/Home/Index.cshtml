@@ -1,8 +1,104 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model gamebox.ViewModels.HomeViewModel
+
+@{
+    ViewData["Title"] = "Home";
+    ViewData["HideAuthNav"] = true;
+    var displayName = User.Identity?.IsAuthenticated == true && !string.IsNullOrWhiteSpace(User.Identity.Name)
+        ? User.Identity.Name
+        : "Player";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="home-page">
+    <header class="home-header">
+        <a asp-controller="Profile" asp-action="Index" class="home-user-link" aria-label="Open profile">
+            @if (!string.IsNullOrWhiteSpace(Model.ProfileAvatarSource))
+            {
+                <img class="home-avatar" src="@Model.ProfileAvatarSource" alt="Photo de profil de @displayName" />
+            }
+            else
+            {
+                <span class="home-avatar" aria-hidden="true">@(displayName[..1].ToUpperInvariant())</span>
+            }
+            <span class="home-user-copy">
+                <strong>@displayName</strong>
+                <span>Good morning, start your day!</span>
+            </span>
+        </a>
+        <a asp-controller="Profile" asp-action="Activity" class="home-icon-button" aria-label="Notifications" title="Notifications">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
+        </a>
+    </header>
+
+    <main>
+        <section class="home-section popular-section" aria-labelledby="trending-heading">
+            <div class="home-section-heading">
+                <h1 id="trending-heading">Trending now</h1>
+                <a asp-controller="Games" asp-action="Search">See All</a>
+            </div>
+            <div class="trending-carousel-wrap">
+                <button type="button" class="carousel-control" data-carousel-target="#trending-games" data-carousel-direction="previous" aria-label="Jeux précédents" title="Précédent">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+                </button>
+                <div class="trending-carousel" id="trending-games" tabindex="0" aria-label="Jeux tendance">
+                @foreach (var game in Model.TrendingGames)
+                {
+                    <a asp-controller="Games" asp-action="Details" asp-route-id="@game.Id" class="trending-game">
+                        <span class="game-poster poster-featured" aria-hidden="true">
+                            @if (!string.IsNullOrWhiteSpace(game.BackgroundImage))
+                            {
+                                <img src="@game.BackgroundImage" alt="" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span class="poster-title">@game.Name</span>
+                            }
+                        </span>
+                        <strong>@game.Name</strong>
+                    </a>
+                }
+                </div>
+                <button type="button" class="carousel-control" data-carousel-target="#trending-games" data-carousel-direction="next" aria-label="Jeux suivants" title="Suivant">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+                </button>
+            </div>
+        </section>
+
+        <section class="home-section community-section" id="community-reviews" aria-labelledby="reviews-heading">
+            <div class="home-section-heading">
+                <h2 id="reviews-heading">Recent Community Reviews</h2>
+                <a asp-controller="Reviews" asp-action="Index">See All</a>
+            </div>
+            <div class="review-list">
+                @if (Model.RecentReviews.Count == 0)
+                {
+                    <p class="review-empty">Aucun avis récent pour le moment.</p>
+                }
+                @foreach (var review in Model.RecentReviews)
+                {
+                    var displayedRating = Math.Clamp((int)Math.Round(review.Rating), 0, 5);
+                    <a asp-controller="Games" asp-action="Details" asp-route-id="@review.GameId" class="review-entry review-link">
+                        <span class="mini-poster" aria-hidden="true">
+                            @if (!string.IsNullOrWhiteSpace(review.Game.CoverUrl))
+                            {
+                                <img src="@review.Game.CoverUrl" alt="" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span>@review.Game.Title[..Math.Min(review.Game.Title.Length, 2)].ToUpperInvariant()</span>
+                            }
+                        </span>
+                        <span class="review-copy">
+                            <span class="review-title-row">
+                                <strong>@review.Game.Title</strong>
+                                <span class="rating-stars" aria-label="@review.Rating.ToString("0.0") sur 5">@("★★★★★"[..displayedRating])<span>@("☆☆☆☆☆"[..(5 - displayedRating)])</span></span>
+                            </span>
+                            <span class="review-author">Par @review.Member.Username · @review.ReviewDate.ToString("dd/MM/yyyy HH:mm")</span>
+                            <p>@review.Comment</p>
+                        </span>
+                    </a>
+                }
+            </div>
+        </section>
+
+    </main>
 </div>
