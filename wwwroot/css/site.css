@@ -279,6 +279,467 @@ body {
   color: white;
 }
 
+/* Home */
+.home-page {
+  width: min(100%, 1080px);
+  min-height: calc(100vh - 70px);
+  margin: 0 auto;
+  padding: 18px 20px 100px;
+  background: radial-gradient(ellipse at 50% 0, rgba(32, 43, 57, .5), transparent 48%);
+}
+
+.home-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 18px;
+  border-bottom: 1px solid #222a36;
+}
+
+.home-user-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin-right: auto;
+  color: inherit;
+  text-decoration: none;
+}
+
+.home-avatar {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid #668a8a;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #547b78, #243b43 58%, #17222c);
+  color: #e7f0df;
+  font-weight: 700;
+}
+
+.home-user-copy,
+.home-user-copy span {
+  display: block;
+}
+
+.home-user-copy strong {
+  font-size: .9rem;
+}
+
+.home-user-copy span {
+  overflow: hidden;
+  color: #9ba1b1;
+  font-size: .72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-icon-button {
+  display: grid;
+  flex: 0 0 38px;
+  width: 38px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid #303a4b;
+  border-radius: 50%;
+  color: #f5f6f8;
+}
+
+.home-icon-button svg {
+  width: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.home-section {
+  padding: 18px 0;
+  border-bottom: 1px solid #222a36;
+}
+
+.home-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+
+.home-section-heading h1,
+.home-section-heading h2 {
+  margin: 0;
+  font-size: .96rem;
+  font-weight: 700;
+}
+
+.home-section-heading a {
+  flex: 0 0 auto;
+  color: #ff7848;
+  font-size: .72rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.home-section-heading a:hover {
+  color: #ffa37f;
+}
+
+.trending-carousel-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trending-carousel {
+  display: flex;
+  min-width: 0;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.trending-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.trending-game {
+  display: flex;
+  flex: 0 0 clamp(128px, 36vw, 190px);
+  flex-direction: column;
+  gap: 5px;
+  color: inherit;
+  text-decoration: none;
+  scroll-snap-align: start;
+}
+
+.trending-game > strong {
+  overflow: hidden;
+  font-size: .78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.carousel-control {
+  display: grid;
+  flex: 0 0 32px;
+  width: 32px;
+  aspect-ratio: 1;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #303a4b;
+  border-radius: 50%;
+  color: #f5f6f8;
+  background: #161b2e;
+  cursor: pointer;
+}
+
+.carousel-control:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+.carousel-control svg {
+  width: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.game-poster {
+  position: relative;
+  display: flex;
+  width: 100%;
+  aspect-ratio: .72;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 13px 8px 10px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 9px;
+  isolation: isolate;
+  text-align: center;
+  transition: transform .18s ease, border-color .18s ease;
+}
+
+.game-poster img,
+.mini-poster img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.game-poster img {
+  z-index: -1;
+}
+
+.poster-featured::before,
+.poster-featured::after {
+  display: none;
+}
+
+.game-poster::before,
+.game-poster::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+}
+
+.game-poster::before {
+  inset: 28% -20% -18%;
+  border: 1px solid rgba(255, 255, 255, .34);
+  border-radius: 50% 50% 0 0;
+  transform: rotate(-16deg);
+}
+
+.game-poster::after {
+  width: 80%;
+  aspect-ratio: 1;
+  top: 22%;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 50%;
+  box-shadow: 0 0 28px rgba(255, 255, 255, .13), inset 0 0 22px rgba(255, 255, 255, .12);
+}
+
+.trending-game:hover .game-poster {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, .5);
+}
+
+.poster-starfield {
+  background: radial-gradient(ellipse at 52% 42%, #b8c8bb 0, #596c6d 22%, transparent 45%), linear-gradient(155deg, #263642, #101d25 55%, #586758);
+}
+
+.poster-diablo {
+  background: radial-gradient(ellipse at 50% 60%, #e54f31 0, #751d19 30%, transparent 62%), linear-gradient(155deg, #451a1b, #120f16 60%, #431d1c);
+}
+
+.poster-hogwarts {
+  background: radial-gradient(ellipse at 52% 42%, #c8bf91 0, #536c64 27%, transparent 58%), linear-gradient(155deg, #879a89, #344e4e 58%, #172d35);
+}
+
+.poster-kicker {
+  color: rgba(255, 255, 255, .78);
+  font-size: .43rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.poster-title {
+  z-index: 1;
+  margin-top: auto;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(.65rem, 3vw, 1.25rem);
+  line-height: 1;
+  text-shadow: 0 2px 8px #000;
+}
+
+.poster-title small {
+  display: block;
+  margin-top: 3px;
+  font-family: inherit;
+  font-size: .48em;
+  letter-spacing: .12em;
+}
+
+.poster-mark {
+  margin-top: 10px;
+  color: rgba(255, 240, 195, .9);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.rating-stars {
+  color: #ffb51b;
+  font-size: .75rem;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.rating-stars span {
+  color: #647080;
+}
+
+.review-list {
+  display: grid;
+  gap: 10px;
+}
+
+.review-entry,
+.journal-entry {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #293342;
+  border-radius: 12px;
+  background: linear-gradient(105deg, #171d27, #141922);
+}
+
+.review-link {
+  color: inherit;
+  text-decoration: none;
+  transition: border-color .18s ease;
+}
+
+.review-link:hover,
+.journal-entry:hover {
+  border-color: #596578;
+  color: inherit;
+}
+
+.mini-poster {
+  position: relative;
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  aspect-ratio: .78;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 7px;
+  color: rgba(255, 255, 255, .88);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: .75rem;
+  font-weight: 700;
+  text-shadow: 0 1px 6px #000;
+}
+
+.mini-elden {
+  background: radial-gradient(circle at 50% 45%, #c2a957 0, #6b5731 24%, transparent 48%), linear-gradient(145deg, #292d24, #101712 68%, #4a3b28);
+}
+
+.mini-diablo {
+  background: radial-gradient(circle at 50% 55%, #e24b2e, #691c18 42%, transparent 66%), #1a1215;
+}
+
+.mini-hogwarts {
+  background: radial-gradient(circle at 50% 38%, #c6bd8d, #5c7064 37%, transparent 62%), linear-gradient(145deg, #536a63, #172d35);
+}
+
+.review-copy,
+.journal-copy {
+  display: block;
+  min-width: 0;
+  flex: 1;
+}
+
+.review-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.review-title-row strong,
+.journal-copy strong {
+  font-size: .75rem;
+}
+
+.review-title-row .rating-stars {
+  font-size: .65rem;
+}
+
+.review-author {
+  display: block;
+  margin-top: 2px;
+  color: #8d96a5;
+  font-size: .65rem;
+}
+
+.review-copy p {
+  margin: 5px 0 0;
+  color: #a9afba;
+  font-size: .68rem;
+  line-height: 1.4;
+}
+
+.journal-entry {
+  color: inherit;
+  text-decoration: none;
+}
+
+.journal-copy strong,
+.journal-copy > span {
+  display: block;
+}
+
+.journal-copy > span {
+  margin-top: 4px;
+  color: #a9afba;
+  font-size: .68rem;
+  line-height: 1.4;
+}
+
+.journal-entry time {
+  align-self: flex-start;
+  flex: 0 0 auto;
+  color: #9299a6;
+  font-size: .62rem;
+}
+
+@media (min-width: 700px) {
+  .home-page {
+    padding-top: 28px;
+  }
+
+  .home-section {
+    padding: 24px 0;
+  }
+
+  .trending-carousel {
+    gap: 20px;
+  }
+
+  .trending-game {
+    flex-basis: 190px;
+  }
+
+  .game-poster {
+    aspect-ratio: .8;
+  }
+
+  .review-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 380px) {
+  .home-page {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .trending-carousel {
+    gap: 9px;
+  }
+
+  .trending-game {
+    flex-basis: 128px;
+  }
+
+  .review-entry,
+  .journal-entry {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .journal-entry time {
+    font-size: .58rem;
+  }
+}
+
 /* Account screens */
 .auth-page {
   min-height: 100vh;

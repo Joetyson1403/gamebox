@@ -1,8 +1,141 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model gamebox.ViewModels.HomeViewModel
+
+@{
+    ViewData["Title"] = "Home";
+    ViewData["HideAuthNav"] = true;
+    var displayName = User.Identity?.IsAuthenticated == true && !string.IsNullOrWhiteSpace(User.Identity.Name)
+        ? User.Identity.Name
+        : "Player";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="home-page">
+    <header class="home-header">
+        <a asp-controller="Profile" asp-action="Index" class="home-user-link" aria-label="Open profile">
+            <span class="home-avatar" aria-hidden="true">@(displayName[..1].ToUpperInvariant())</span>
+            <span class="home-user-copy">
+                <strong>@displayName</strong>
+                <span>Good morning, start your day!</span>
+            </span>
+        </a>
+        <a asp-controller="Profile" asp-action="Activity" class="home-icon-button" aria-label="Notifications" title="Notifications">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
+        </a>
+    </header>
+
+    <main>
+        <section class="home-section popular-section" aria-labelledby="trending-heading">
+            <div class="home-section-heading">
+                <h1 id="trending-heading">Trending now</h1>
+                <a asp-controller="Games" asp-action="Search">See All</a>
+            </div>
+            <div class="trending-carousel-wrap">
+                <button type="button" class="carousel-control" data-carousel-target="#trending-games" data-carousel-direction="previous" aria-label="Jeux précédents" title="Précédent">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+                </button>
+                <div class="trending-carousel" id="trending-games" tabindex="0" aria-label="Jeux tendance">
+                @foreach (var game in Model.TrendingGames)
+                {
+                    <a asp-controller="Games" asp-action="Details" asp-route-id="@game.Id" class="trending-game">
+                        <span class="game-poster poster-featured" aria-hidden="true">
+                            @if (!string.IsNullOrWhiteSpace(game.BackgroundImage))
+                            {
+                                <img src="@game.BackgroundImage" alt="" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span class="poster-title">@game.Name</span>
+                            }
+                        </span>
+                        <strong>@game.Name</strong>
+                    </a>
+                }
+                </div>
+                <button type="button" class="carousel-control" data-carousel-target="#trending-games" data-carousel-direction="next" aria-label="Jeux suivants" title="Suivant">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+                </button>
+            </div>
+        </section>
+
+        <section class="home-section community-section" id="community-reviews" aria-labelledby="reviews-heading">
+            <div class="home-section-heading">
+                <h2 id="reviews-heading">Recent Community Reviews</h2>
+                <a asp-controller="Profile" asp-action="Activity">See All</a>
+            </div>
+            <div class="review-list">
+                @if (Model.EldenRing is not null)
+                {
+                    <a asp-controller="Games" asp-action="Details" asp-route-id="@Model.EldenRing.Id" class="review-entry review-link">
+                        <span class="mini-poster mini-elden" aria-hidden="true">
+                            @if (!string.IsNullOrWhiteSpace(Model.EldenRing.BackgroundImage))
+                            {
+                                <img src="@Model.EldenRing.BackgroundImage" alt="" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span>ER</span>
+                            }
+                        </span>
+                        <span class="review-copy">
+                            <span class="review-title-row">
+                                <strong>@Model.EldenRing.Name</strong>
+                                <span class="rating-stars" aria-label="5 out of 5 stars">★★★★★</span>
+                            </span>
+                            <span class="review-author">By Tarnished99</span>
+                            <span class="review-description">The absolute peak of open world game design. Still discovering secrets on my 3rd playthrough.</span>
+                        </span>
+                    </a>
+                }
+                @if (Model.Diablo is not null)
+                {
+                    <a asp-controller="Games" asp-action="Details" asp-route-id="@Model.Diablo.Id" class="review-entry review-link">
+                        <span class="mini-poster mini-diablo" aria-hidden="true">
+                            @if (!string.IsNullOrWhiteSpace(Model.Diablo.BackgroundImage))
+                            {
+                                <img src="@Model.Diablo.BackgroundImage" alt="" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span>IV</span>
+                            }
+                        </span>
+                        <span class="review-copy">
+                            <span class="review-title-row">
+                                <strong>@Model.Diablo.Name</strong>
+                                <span class="rating-stars" aria-label="4 out of 5 stars">★★★★<span>★</span></span>
+                            </span>
+                            <span class="review-author">By Lilithee</span>
+                            <span class="review-description">Incredible campaign, beautifully atmospheric sound design and intense combat loop.</span>
+                        </span>
+                    </a>
+                }
+            </div>
+        </section>
+
+        <section class="home-section journal-section" aria-labelledby="journal-heading">
+            <div class="home-section-heading">
+                <h2 id="journal-heading">Your Journal</h2>
+                <a asp-controller="Profile" asp-action="Activity">See All</a>
+            </div>
+            @if (Model.HogwartsLegacy is not null)
+            {
+                <a asp-controller="Games" asp-action="Details" asp-route-id="@Model.HogwartsLegacy.Id" class="journal-entry">
+                    <span class="mini-poster mini-hogwarts" aria-hidden="true">
+                        @if (!string.IsNullOrWhiteSpace(Model.HogwartsLegacy.BackgroundImage))
+                        {
+                            <img src="@Model.HogwartsLegacy.BackgroundImage" alt="" loading="lazy" />
+                        }
+                        else
+                        {
+                            <span>HL</span>
+                        }
+                    </span>
+                    <span class="journal-copy">
+                        <strong>@Model.HogwartsLegacy.Name</strong>
+                        <span>Finally mastered the flying broom race around Hogsmeade! Beautiful views at sunset.</span>
+                    </span>
+                    <time datetime="2026-10-06">2 hours ago</time>
+                </a>
+            }
+        </section>
+    </main>
 </div>
