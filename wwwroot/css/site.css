@@ -319,6 +319,10 @@ body {
   font-weight: 700;
 }
 
+img.home-avatar {
+  object-fit: cover;
+}
+
 .home-user-copy,
 .home-user-copy span {
   display: block;
@@ -663,6 +667,132 @@ body {
   color: #a9afba;
   font-size: .68rem;
   line-height: 1.4;
+}
+
+.reviews-page {
+  width: min(100% - 32px, 900px);
+  margin: 0 auto;
+  padding: 26px 0 40px;
+}
+
+.reviews-page-header {
+  padding: 12px 0 20px;
+  border-bottom: 1px solid #293342;
+}
+
+.reviews-back-link {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: #ff7848;
+  font-size: .8rem;
+  text-decoration: none;
+}
+
+.reviews-page-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.reviews-page-header p,
+.reviews-empty {
+  margin: 6px 0 0;
+  color: #9299a6;
+  font-size: .82rem;
+}
+
+.reviews-feed {
+  display: grid;
+  gap: 12px;
+  padding-top: 18px;
+}
+
+.community-review-card {
+  display: flex;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #293342;
+  border-radius: 8px;
+  background: #141922;
+}
+
+.community-review-game {
+  display: grid;
+  flex: 0 0 72px;
+  width: 72px;
+  aspect-ratio: .78;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 6px;
+  color: white;
+  text-decoration: none;
+}
+
+.community-review-game img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.community-review-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-review-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.community-review-title {
+  color: #f5f6f8;
+  font-size: .95rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.community-review-author,
+.community-review-heading time {
+  color: #9299a6;
+  font-size: .72rem;
+}
+
+.community-review-heading time {
+  flex: 0 0 auto;
+}
+
+.community-review-content .rating-stars {
+  display: inline-block;
+  margin-top: 7px;
+}
+
+.community-review-content > p {
+  margin: 8px 0 0;
+  color: #c1c6ce;
+  font-size: .84rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .community-review-card {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .community-review-game {
+    flex-basis: 56px;
+    width: 56px;
+  }
+
+  .community-review-heading {
+    flex-direction: column;
+    gap: 3px;
+  }
 }
 
 .journal-entry {

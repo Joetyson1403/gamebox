@@ -1,0 +1,51 @@
+@model List<gamebox.Models.Review>
+
+@{
+    ViewData["Title"] = "Community Reviews";
+    ViewData["HideAuthNav"] = true;
+}
+
+<div class="reviews-page">
+    <header class="reviews-page-header">
+        <a asp-controller="Home" asp-action="Index" class="reviews-back-link">&larr; Home</a>
+        <h1>Community Reviews</h1>
+        <p>@Model.Count @(Model.Count == 1 ? "review" : "reviews")</p>
+    </header>
+
+    @if (Model.Count == 0)
+    {
+        <p class="reviews-empty">Aucun avis pour le moment.</p>
+    }
+    else
+    {
+        <div class="reviews-feed">
+            @foreach (var review in Model)
+            {
+                var displayedRating = Math.Clamp((int)Math.Round(review.Rating), 0, 5);
+                <article class="community-review-card">
+                    <a asp-controller="Games" asp-action="Details" asp-route-id="@review.GameId" class="community-review-game">
+                        @if (!string.IsNullOrWhiteSpace(review.Game.CoverUrl))
+                        {
+                            <img src="@review.Game.CoverUrl" alt="" loading="lazy" />
+                        }
+                        else
+                        {
+                            <span>@review.Game.Title[..Math.Min(review.Game.Title.Length, 2)].ToUpperInvariant()</span>
+                        }
+                    </a>
+                    <div class="community-review-content">
+                        <div class="community-review-heading">
+                            <div>
+                                <a asp-controller="Games" asp-action="Details" asp-route-id="@review.GameId" class="community-review-title">@review.Game.Title</a>
+                                <div class="community-review-author">Par @review.Member.Username</div>
+                            </div>
+                            <time datetime="@review.ReviewDate.ToString("O")">@review.ReviewDate.ToString("dd/MM/yyyy HH:mm")</time>
+                        </div>
+                        <div class="rating-stars" aria-label="@review.Rating.ToString("0.0") sur 5">@("★★★★★"[..displayedRating])<span>@("☆☆☆☆☆"[..(5 - displayedRating)])</span></div>
+                        <p>@review.Comment</p>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</div>

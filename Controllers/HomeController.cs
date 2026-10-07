@@ -1,5 +1,8 @@
 using System.Diagnostics;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using gamebox.Data;
 using gamebox.Models;
 using gamebox.Services;
 using gamebox.ViewModels;
@@ -12,10 +15,12 @@ namespace gamebox.Controllers;
 public class HomeController : Controller
 {
     private readonly IGameApiService _gameApiService;
+    private readonly AppDbContext _dbContext;
 
-    public HomeController(IGameApiService gameApiService)
+    public HomeController(IGameApiService gameApiService, AppDbContext dbContext)
     {
         _gameApiService = gameApiService;
+        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -23,29 +28,47 @@ public class HomeController : Controller
     /// </summary>
     public async Task<IActionResult> Index()
     {
-        var searches = await Task.WhenAll(
-            _gameApiService.SearchGamesAsync("Starfield"),
-            _gameApiService.SearchGamesAsync("Diablo IV"),
-            _gameApiService.SearchGamesAsync("Hogwarts Legacy"),
-            _gameApiService.SearchGamesAsync("Elden Ring"),
-            _gameApiService.SearchGamesAsync(string.Empty));
-
-        GameDto? FindGame(int searchIndex, string title)
+        string? profileAvatarSource = null;
+        var memberIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (int.TryParse(memberIdValue, out var memberId))
         {
-            var results = searches[searchIndex];
-            return results?.FirstOrDefault(game => string.Equals(game.Name, title, StringComparison.OrdinalIgnoreCase))
-                ?? results?.FirstOrDefault();
+            var avatar = await _dbContext.Members
+                .Where(member => member.Id == memberId)
+                .Select(member => new { member.AvatarImage, member.AvatarUrl, member.Username })
+                .FirstOrDefaultAsync();
+
+            if (avatar?.AvatarImage is { Length: > 0 })
+            {
+                profileAvatarSource = $"data:image/jpeg;base64,{Convert.ToBase64String(avatar.AvatarImage)}";
+            }
+            else if (!string.IsNullOrWhiteSpace(avatar?.AvatarUrl))
+            {
+                profileAvatarSource = avatar.AvatarUrl;
+            }
+            else if (!string.IsNullOrWhiteSpace(avatar?.Username))
+            {
+                profileAvatarSource = $"https://api.dicebear.com/7.x/avataaars/svg?seed={Uri.EscapeDataString(avatar.Username)}";
+            }
         }
 
-        var diablo = FindGame(1, "Diablo IV");
-        var hogwarts = FindGame(2, "Hogwarts Legacy");
+        var trendingTask = _gameApiService.SearchGamesAsync(string.Empty);
+        var hogwartsTask = _gameApiService.SearchGamesAsync("Hogwarts Legacy");
+        var recentReviewsTask = _dbContext.Reviews
+            .Include(review => review.Member)
+            .Include(review => review.Game)
+            .OrderByDescending(review => review.ReviewDate)
+            .Take(3)
+            .ToListAsync();
+
+        await Task.WhenAll(trendingTask, hogwartsTask, recentReviewsTask);
 
         return View(new HomeViewModel
         {
-            TrendingGames = searches[4] ?? new List<GameDto>(),
-            EldenRing = FindGame(3, "Elden Ring"),
-            Diablo = diablo,
-            HogwartsLegacy = hogwarts
+            ProfileAvatarSource = profileAvatarSource,
+            TrendingGames = trendingTask.Result ?? new List<GameDto>(),
+            RecentReviews = recentReviewsTask.Result,
+            HogwartsLegacy = hogwartsTask.Result?.FirstOrDefault(game => string.Equals(game.Name, "Hogwarts Legacy", StringComparison.OrdinalIgnoreCase))
+                ?? hogwartsTask.Result?.FirstOrDefault()
         });
     }
 

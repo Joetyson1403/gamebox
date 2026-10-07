@@ -11,7 +11,14 @@
 <div class="home-page">
     <header class="home-header">
         <a asp-controller="Profile" asp-action="Index" class="home-user-link" aria-label="Open profile">
-            <span class="home-avatar" aria-hidden="true">@(displayName[..1].ToUpperInvariant())</span>
+            @if (!string.IsNullOrWhiteSpace(Model.ProfileAvatarSource))
+            {
+                <img class="home-avatar" src="@Model.ProfileAvatarSource" alt="Photo de profil de @displayName" />
+            }
+            else
+            {
+                <span class="home-avatar" aria-hidden="true">@(displayName[..1].ToUpperInvariant())</span>
+            }
             <span class="home-user-copy">
                 <strong>@displayName</strong>
                 <span>Good morning, start your day!</span>
@@ -59,83 +66,39 @@
         <section class="home-section community-section" id="community-reviews" aria-labelledby="reviews-heading">
             <div class="home-section-heading">
                 <h2 id="reviews-heading">Recent Community Reviews</h2>
-                <a asp-controller="Profile" asp-action="Activity">See All</a>
+                <a asp-controller="Reviews" asp-action="Index">See All</a>
             </div>
             <div class="review-list">
-                @if (Model.EldenRing is not null)
+                @if (Model.RecentReviews.Count == 0)
                 {
-                    <a asp-controller="Games" asp-action="Details" asp-route-id="@Model.EldenRing.Id" class="review-entry review-link">
-                        <span class="mini-poster mini-elden" aria-hidden="true">
-                            @if (!string.IsNullOrWhiteSpace(Model.EldenRing.BackgroundImage))
-                            {
-                                <img src="@Model.EldenRing.BackgroundImage" alt="" loading="lazy" />
-                            }
-                            else
-                            {
-                                <span>ER</span>
-                            }
-                        </span>
-                        <span class="review-copy">
-                            <span class="review-title-row">
-                                <strong>@Model.EldenRing.Name</strong>
-                                <span class="rating-stars" aria-label="5 out of 5 stars">★★★★★</span>
-                            </span>
-                            <span class="review-author">By Tarnished99</span>
-                            <span class="review-description">The absolute peak of open world game design. Still discovering secrets on my 3rd playthrough.</span>
-                        </span>
-                    </a>
+                    <p class="review-empty">Aucun avis récent pour le moment.</p>
                 }
-                @if (Model.Diablo is not null)
+                @foreach (var review in Model.RecentReviews)
                 {
-                    <a asp-controller="Games" asp-action="Details" asp-route-id="@Model.Diablo.Id" class="review-entry review-link">
-                        <span class="mini-poster mini-diablo" aria-hidden="true">
-                            @if (!string.IsNullOrWhiteSpace(Model.Diablo.BackgroundImage))
+                    var displayedRating = Math.Clamp((int)Math.Round(review.Rating), 0, 5);
+                    <a asp-controller="Games" asp-action="Details" asp-route-id="@review.GameId" class="review-entry review-link">
+                        <span class="mini-poster" aria-hidden="true">
+                            @if (!string.IsNullOrWhiteSpace(review.Game.CoverUrl))
                             {
-                                <img src="@Model.Diablo.BackgroundImage" alt="" loading="lazy" />
+                                <img src="@review.Game.CoverUrl" alt="" loading="lazy" />
                             }
                             else
                             {
-                                <span>IV</span>
+                                <span>@review.Game.Title[..Math.Min(review.Game.Title.Length, 2)].ToUpperInvariant()</span>
                             }
                         </span>
                         <span class="review-copy">
                             <span class="review-title-row">
-                                <strong>@Model.Diablo.Name</strong>
-                                <span class="rating-stars" aria-label="4 out of 5 stars">★★★★<span>★</span></span>
+                                <strong>@review.Game.Title</strong>
+                                <span class="rating-stars" aria-label="@review.Rating.ToString("0.0") sur 5">@("★★★★★"[..displayedRating])<span>@("☆☆☆☆☆"[..(5 - displayedRating)])</span></span>
                             </span>
-                            <span class="review-author">By Lilithee</span>
-                            <span class="review-description">Incredible campaign, beautifully atmospheric sound design and intense combat loop.</span>
+                            <span class="review-author">Par @review.Member.Username · @review.ReviewDate.ToString("dd/MM/yyyy HH:mm")</span>
+                            <p>@review.Comment</p>
                         </span>
                     </a>
                 }
             </div>
         </section>
 
-        <section class="home-section journal-section" aria-labelledby="journal-heading">
-            <div class="home-section-heading">
-                <h2 id="journal-heading">Your Journal</h2>
-                <a asp-controller="Profile" asp-action="Activity">See All</a>
-            </div>
-            @if (Model.HogwartsLegacy is not null)
-            {
-                <a asp-controller="Games" asp-action="Details" asp-route-id="@Model.HogwartsLegacy.Id" class="journal-entry">
-                    <span class="mini-poster mini-hogwarts" aria-hidden="true">
-                        @if (!string.IsNullOrWhiteSpace(Model.HogwartsLegacy.BackgroundImage))
-                        {
-                            <img src="@Model.HogwartsLegacy.BackgroundImage" alt="" loading="lazy" />
-                        }
-                        else
-                        {
-                            <span>HL</span>
-                        }
-                    </span>
-                    <span class="journal-copy">
-                        <strong>@Model.HogwartsLegacy.Name</strong>
-                        <span>Finally mastered the flying broom race around Hogsmeade! Beautiful views at sunset.</span>
-                    </span>
-                    <time datetime="2026-10-06">2 hours ago</time>
-                </a>
-            }
-        </section>
     </main>
 </div>
